@@ -158,6 +158,46 @@
     </div></div>`;
   };
 
+  /* ---------- Broker Book — the Broker's own worklist + commission (FRD §3: "Broker
+     represents the employer commercially... receives proposal and policy copies"); also
+     doubles as a relationship/commission overview for internal Sales/Management roles. ---------- */
+  function brokerSection(broker) {
+    const cases = DB.CASES.filter(c => c.brokerId === broker.id);
+    if (!cases.length) return "";
+    const byCurrency = {};
+    cases.forEach(c => {
+      const cur = U.currencyOf(c);
+      if (!byCurrency[cur]) byCurrency[cur] = { premium: 0, commission: 0 };
+      if (c.proposal) { byCurrency[cur].premium += c.proposal.netPremium; byCurrency[cur].commission += c.proposal.brokerage || 0; }
+    });
+    const chips = Object.entries(byCurrency).filter(([, v]) => v.premium > 0).map(([cur, v]) =>
+      `<div class="info-item"><div class="lbl">${U.esc(cur)} Commission Earned</div><div class="val">${U.fmtMoney(v.commission, cur)}</div></div>`).join("")
+      || `<div class="empty">No priced proposals yet.</div>`;
+    const rows = cases.map(c => `<tr class="rowlink" data-href="#/case/${c.id}">
+      <td><div class="cell-main">${U.esc(c.lead.companyName)}</div><div class="cell-sub">${U.esc(c.id)}</div></td>
+      <td>${U.pill(c.stage)}</td>
+      <td class="num">${c.proposal ? U.fmtMoney(c.proposal.netPremium, U.currencyOf(c)) : "—"}</td>
+      <td class="num">${c.proposal ? U.fmtMoney(c.proposal.brokerage, U.currencyOf(c)) : "Pending proposal"}</td>
+    </tr>`).join("");
+    return `<div class="card" style="margin-bottom:16px;">
+      <div class="card-head"><div><div class="card-title">${U.esc(broker.name)}</div>
+        <div class="card-sub">${U.esc(broker.contact)} · Commission rate ${(broker.commissionRate * 100).toFixed(2)}%${broker.note ? " · " + U.esc(broker.note) : ""}</div></div></div>
+      <div class="card-body">
+        <div class="info-grid" style="margin-bottom:16px;">${chips}</div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Company</th><th>Stage</th><th class="num">Net Premium</th><th class="num">Commission</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>
+      </div></div>`;
+  }
+
+  VIEWS["broker-book"] = function () {
+    const isBroker = DB.CURRENT_USER.role === "Broker";
+    const brokers = isBroker ? DB.BROKERS.filter(b => b.id === DB.CURRENT_USER.brokerId) : DB.BROKERS;
+    return `
+    <div class="page-head"><div><div class="page-title">Broker Book</div>
+      <div class="page-sub">${isBroker ? "Business you've placed with Al Falaj Assurance, and commission earned" : "Broker relationships and commission across the book"}</div></div></div>
+    ${brokers.map(brokerSection).join("") || `<div class="empty">No cases placed yet.</div>`}`;
+  };
+
   /* ---------- Playbook (Approval Matrix / Notification Matrix / Key Documents / Status Flow reference) ---------- */
   VIEWS.playbook = function () {
     return `

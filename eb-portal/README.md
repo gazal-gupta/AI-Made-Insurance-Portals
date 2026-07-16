@@ -65,6 +65,14 @@ Approval before they can be sent; a negotiated change that moves risk re-opens U
    AED) and `Lusail Energy Solutions WLL` (Qatar, CR/Tax Card, QAR — no VAT yet) are RMS's UAE
    and Doha-office leads. Compare their Employer Profile screens to see the identity fields,
    currency, and tax treatment all shift per FRD §1.4.
+6. **Broker's-eye view** — switch role to **Yousuf Al Balushi — Broker** (RMS). The New Lead
+   button (locked to Sales Executive/Broker roles per the Screen 1 business rule) lets a
+   broker co-create a lead directly, auto-attributed to their own firm; the dashboard's "Cases
+   You've Introduced" and the **Broker Book** page (sidebar) then scope to just their book,
+   with commission computed at their firm's own negotiated rate — RMS's spans three
+   currencies (OMR/AED/QAR) since they place business in Oman, UAE and Qatar. Switch back to
+   an internal role to see Broker Book as a full relationship/commission overview across all
+   three brokers instead.
 
 ## Reference pages
 
@@ -84,9 +92,13 @@ Approval before they can be sent; a negotiated change that moves risk re-opens U
   registry, plus an `ACTIONS[name]` registry for all mutating interactions (dispatched by a
   single delegated click/change listener in `app.js`).
 - Role switcher (sidebar) swaps the acting persona across Sales Executive / Sales Manager /
-  Underwriter / Senior Underwriter / Finance / Business Head, gating the decision buttons on
-  Underwriting and Approval screens — a direct, demoable implementation of the FRD's RBAC
-  non-functional requirement (§10.3).
+  Underwriter / Senior Underwriter / Finance / Business Head / **Broker**, gating the decision
+  buttons on Underwriting and Approval screens, the New Lead action, and pipeline/Broker Book
+  scoping — a direct, demoable implementation of the FRD's RBAC non-functional requirement
+  (§10.3) and its Screen 1/3 broker co-creation rules.
+- **Broker Book** (`js/views-case-shell.js`) — each broker's own commission, computed at their
+  individually negotiated rate (`DB.calc.brokerageFor`) and grouped by currency, since a broker
+  like RMS places business across Oman/UAE/Qatar in the same book.
 - Twelve seeded cases span the full 12-stage status flow (Lead → Policy Issued) across Oman,
   UAE and Qatar; India's formats stay live in code (`js/ui.js`, `js/views-employer.js`) behind
   a `geography`/`currency` field on each case, ready to activate without further changes.

@@ -15,7 +15,10 @@
     { id: "U-UW-01", name: "Mariam Al Hinai", role: "Underwriter", initials: "MH" },
     { id: "U-SUW-01", name: "Khalid Al Farsi", role: "Senior Underwriter", initials: "KF" },
     { id: "U-FIN-01", name: "Layla Al Zadjali", role: "Finance", initials: "LZ" },
-    { id: "U-BH-01", name: "Hamed Al Kindi", role: "Business Head", initials: "HK" }
+    { id: "U-BH-01", name: "Hamed Al Kindi", role: "Business Head", initials: "HK" },
+    { id: "BU-01", name: "Yousuf Al Balushi", role: "Broker", initials: "YB", brokerId: "BRK-01" },
+    { id: "BU-02", name: "Rashid Al Amri", role: "Broker", initials: "RA", brokerId: "BRK-02" },
+    { id: "BU-03", name: "Suad Al Riyami", role: "Broker", initials: "SR", brokerId: "BRK-03" }
   ];
   const CURRENT_USER = Object.assign({}, PERSONAS[0]);
 
@@ -36,9 +39,10 @@
 
   const BROKERS = [
     { id: "BRK-01", name: "RMS Insurance Brokers LLC", contact: "Yousuf Al Balushi", email: "yousuf.albalushi@rmsme.com",
+      commissionRate: 0.03,
       note: "Established 1979 — first licensed insurance broker in the Sultanate of Oman; largest Employee Benefits broker in Oman, also operating in the UAE and Qatar." },
-    { id: "BRK-02", name: "Gulf Shield Insurance Brokers LLC", contact: "Rashid Al Amri", email: "rashid.alamri@gulfshieldbrokers.om" },
-    { id: "BRK-03", name: "Al Nahda Brokerage Services LLC", contact: "Suad Al Riyami", email: "suad.alriyami@alnahdabrokers.om" }
+    { id: "BRK-02", name: "Gulf Shield Insurance Brokers LLC", contact: "Rashid Al Amri", email: "rashid.alamri@gulfshieldbrokers.om", commissionRate: 0.025 },
+    { id: "BRK-03", name: "Al Nahda Brokerage Services LLC", contact: "Suad Al Riyami", email: "suad.alriyami@alnahdabrokers.om", commissionRate: 0.0275 }
   ];
 
   const INDUSTRIES = [
@@ -284,6 +288,14 @@
   }
   function basePremium(kase) { return calcGMCPremium(kase) + calcGTLPremium(kase); }
 
+  /* ---------- brokerage / commission (Section 3: "Broker represents the employer
+     commercially"; each broker's own negotiated rate, not a flat platform default) ---------- */
+  function brokerageFor(kase, premium) {
+    if (!kase.brokerId) return 0;
+    const b = BROKERS.find(x => x.id === kase.brokerId);
+    return Math.round(premium * ((b && b.commissionRate) || 0.025));
+  }
+
   function quoteOptions(kase) {
     if (!kase.benefitGMC && !kase.benefitGTL) return [];
     const base = basePremium(kase);
@@ -451,7 +463,7 @@
       prevInsurance: { currentInsurer: "Gulf Crescent Insurance Co SAOG", policyNumber: "GCI/GMC/2025/44210",
         policyStart: "2025-09-01", policyEnd: "2026-08-31", livesCovered: 1080, premium: 230000, claims: 165000,
         majorClaims: "Two ongoing cardiac-surgery claims exceeding OMR 5,000 each; one maternity complication claim.",
-        reportFile: "Sohar_Claim_Experience_2025-26.pdf" },
+        reportFile: "Sohar_Claim_Experience_2025-26.pdf", policyDocFile: "Gulf_Crescent_Prior_Policy_Copy.pdf" },
       underwriting: null, quotes: [], selectedQuoteId: null, proposal: null, negotiation: null, approval: null, payment: null, issuance: null
     };
     kase.underwriting = {
@@ -563,7 +575,7 @@
     kase.quotes = quoteOptions(kase);
     const premium = kase.quotes.find(q => q.id === "A").premium;
     const taxes = Math.round(premium * 0.05);
-    kase.proposal = { premium, taxes, brokerage: Math.round(premium * 0.03), discountPct: 0, discount: 0,
+    kase.proposal = { premium, taxes, brokerage: brokerageFor(kase, premium), discountPct: 0, discount: 0,
       netPremium: premium + taxes, sentAt: "2026-07-01", sentTo: "Sultan Al Abri (HR); RMS Insurance Brokers" };
     kase.negotiation = {
       requests: [
@@ -652,7 +664,7 @@
     kase.quotes = quoteOptions(kase);
     const premium = kase.quotes.find(q => q.id === "A").premium;
     const taxes = Math.round(premium * 0.05);
-    kase.proposal = { premium, taxes, brokerage: Math.round(premium * 0.025), discountPct: 3, discount: Math.round(premium * 0.03),
+    kase.proposal = { premium, taxes, brokerage: brokerageFor(kase, premium), discountPct: 3, discount: Math.round(premium * 0.03),
       netPremium: Math.round(premium * 0.97) + taxes, sentAt: "2026-05-20", sentTo: "Majid Al Busaidi (HR); Al Nahda Brokerage Services" };
     kase.negotiation = { requests: [{ type: "Discount Requested", detail: "3% loyalty discount requested for multi-year relationship.", date: "2026-05-22", by: "Corporate HR" }],
       salesComments: "Long-standing relationship; discount within Sales Manager delegated authority.", uwComments: "", financeComments: "Approved — within margin.", discountRequestedPct: 3, resubmitted: true };
@@ -756,7 +768,7 @@
     CASES, NOTIFICATIONS, RENEWALS, TODAY,
     calc: {
       computeAge, validateCensus, reconciliation, lossRatio, fclBreaches, computeRiskScore, ensureUnderwriting, ageDistribution, trafficLight,
-      calcGMCPremium, calcGTLPremium, basePremium, quoteOptions, approvalRoute, genCensus, addDays
+      calcGMCPremium, calcGTLPremium, basePremium, brokerageFor, quoteOptions, approvalRoute, genCensus, addDays
     },
     pushNotif
   };

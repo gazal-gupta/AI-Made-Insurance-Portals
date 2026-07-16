@@ -59,7 +59,7 @@
     const taxRate = TAX_RATES[cur] != null ? TAX_RATES[cur] : 0.05;
     const taxes = Math.round(q.premium * taxRate);
     kase.proposal = {
-      premium: q.premium, taxes, brokerage: kase.brokerId ? Math.round(q.premium * 0.025) : 0,
+      premium: q.premium, taxes, brokerage: DB.calc.brokerageFor(kase, q.premium),
       discountPct: 0, discount: 0, netPremium: q.premium + taxes, sentAt: null, sentTo: null
     };
     U.toast(`Proposal generated for <strong>${U.esc(kase.lead.companyName)}</strong>.`);
@@ -136,7 +136,7 @@
     kase.proposal.sentTo = kase.employer.hrContact.split("/")[0].trim() + (kase.brokerId ? " (HR); " + U.broker(kase.brokerId).name : " (HR)");
     if (kase.stage === "Underwriting" || DB.STATUS_FLOW.indexOf(kase.stage) < DB.STATUS_FLOW.indexOf("Proposal Shared")) kase.stage = "Proposal Shared";
     DB.pushNotif(kase, "Proposal sent", "ok", `Proposal PDF sent for <strong>${U.esc(kase.lead.companyName)}</strong> with read-receipt tracking.`, `#/case/${kase.id}/proposal`);
-    U.toast("Proposal emailed to HR Contact" + (kase.brokerId ? " and Broker" : "") + " with read receipt tracking.");
+    U.toast("Proposal emailed to HR Contact" + (kase.brokerId ? ` and ${U.esc(U.broker(kase.brokerId).name)}` : "") + " with read receipt tracking.");
     App.render();
   };
 

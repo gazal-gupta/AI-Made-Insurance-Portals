@@ -160,6 +160,10 @@
         <div class="field-row"><label>Number of Claims <span class="opt">optional — used to derive Claim Ratio</span></label><input class="input" name="claimCount" type="number" min="0" value="${p && p.claimCount ? p.claimCount : ""}"></div>
         <div class="field-row full"><label>Major Claims <span class="opt">optional — narrative of large / ongoing claims</span></label>
           <textarea class="input" name="majorClaims">${U.esc(p ? p.majorClaims : "")}</textarea></div>
+        <div class="field-row full"><label>Upload Previous Policy Copy <span class="opt">optional — PDF, max 10MB${kase.brokerId ? " — typically supplied by " + U.esc(U.broker(kase.brokerId).name) : ""}</span></label>
+          <div class="dropzone" data-action="stub-upload" data-label="previous policy copy">
+            <div class="dz-title">${p && p.policyDocFile ? "Replace file" : "Click to attach"}</div><div class="dz-sub">${p && p.policyDocFile ? U.esc(p.policyDocFile) : "No file attached yet"}</div>
+          </div></div>
         <div class="field-row full"><label>Upload Claim Experience Report <span class="opt">optional — PDF/XLSX, max 10MB</span></label>
           <div class="dropzone" data-action="stub-upload" data-label="claim experience report">
             <div class="dz-title">${p && p.reportFile ? "Replace file" : "Click to attach"}</div><div class="dz-sub">${p && p.reportFile ? U.esc(p.reportFile) : "No file attached yet"}</div>
@@ -193,7 +197,8 @@
       policyStart: fd.get("policyStart"), policyEnd: fd.get("policyEnd"),
       livesCovered: Number(fd.get("livesCovered")), premium: Number(fd.get("premium")),
       claims: Number(fd.get("claims")) || 0, claimCount: Number(fd.get("claimCount")) || 0,
-      majorClaims: fd.get("majorClaims") || "", reportFile: kase.prevInsurance ? kase.prevInsurance.reportFile : ""
+      majorClaims: fd.get("majorClaims") || "", reportFile: kase.prevInsurance ? kase.prevInsurance.reportFile : "",
+      policyDocFile: kase.prevInsurance ? kase.prevInsurance.policyDocFile : ""
     };
     U.toast(`Previous Insurance Experience saved for <strong>${U.esc(kase.lead.companyName)}</strong>.`);
     location.hash = `#/case/${kase.id}/${J.nextStepKey(kase, "previous-insurance")}`;

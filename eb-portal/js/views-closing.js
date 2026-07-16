@@ -232,8 +232,9 @@
 
   ACTIONS["issuance-send"] = function (d) {
     const kase = U.kase(d.case);
+    const recipients = "HR Contact" + (kase.brokerId ? `, ${U.esc(U.broker(kase.brokerId).name)},` : ",") + " and Finance";
     DB.pushNotif(kase, "Policy issued", "ok", `Policy documents sent for <strong>${U.esc(kase.lead.companyName)}</strong>.`, `#/case/${kase.id}/issuance`);
-    U.toast("Policy documents emailed to HR Contact, Broker, and Finance.");
+    U.toast(`Policy documents emailed to ${recipients}.`);
   };
 
   ACTIONS["issuance-finish"] = function (d) {

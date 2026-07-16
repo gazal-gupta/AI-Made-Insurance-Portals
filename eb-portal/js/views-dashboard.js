@@ -36,16 +36,21 @@
     const uwCount = DB.CASES.filter(c => J.currentStepKey(c) === "underwriting" && !J.isDone(c, "underwriting")).length;
     const issuedCount = DB.CASES.filter(c => c.issuance && c.issuance.finished).length;
 
-    const myPipeline = DB.CASES.filter(c => c.salesExecutiveId === DB.CURRENT_USER.id && !(c.issuance && c.issuance.finished))
+    // Pipeline visibility is role-scoped (FRD Screen 1 business rule): Sales Executives see
+    // their own book; a Broker persona sees the cases they introduced instead.
+    const isBroker = DB.CURRENT_USER.role === "Broker";
+    const myPipeline = DB.CASES.filter(c => !(c.issuance && c.issuance.finished) &&
+      (isBroker ? c.brokerId === DB.CURRENT_USER.brokerId : c.salesExecutiveId === DB.CURRENT_USER.id))
       .slice(0, 7);
 
+    const canCreateLead = ["Sales Executive", "Broker"].includes(DB.CURRENT_USER.role);
     return `
     <div class="page-head">
       <div><div class="page-title">Sales Dashboard</div><div class="page-sub">Employee Benefits — Group Medical &amp; Group Term Life, assisted sales journey</div></div>
       <div class="detail-actions">
         <button class="btn btn-teal" data-action="open-census-shortcut">Upload Census</button>
         <button class="btn btn-teal" data-action="open-new-opportunity">New Opportunity</button>
-        <button class="btn btn-amber" data-action="open-new-lead">New Lead</button>
+        <button class="btn btn-amber" data-action="open-new-lead" ${!canCreateLead ? "disabled" : ""} title="${!canCreateLead ? "New Lead is enabled for Sales Executive and Broker roles only." : ""}">New Lead</button>
       </div>
     </div>
 
@@ -59,8 +64,8 @@
 
     <div class="dash-grid">
       <div class="card">
-        <div class="card-head"><div><div class="card-title">My Pipeline</div><div class="card-sub">Role-scoped to your book — Sales Managers see the full team book</div></div>
-          <div class="card-link" data-href="#/pipeline">View all →</div></div>
+        <div class="card-head"><div><div class="card-title">${isBroker ? "Cases You've Introduced" : "My Pipeline"}</div><div class="card-sub">${isBroker ? "Role-scoped to business placed through you — see Broker Book for commission" : "Role-scoped to your book — Sales Managers see the full team book"}</div></div>
+          <div class="card-link" data-href="${isBroker ? "#/broker-book" : "#/pipeline"}">View all →</div></div>
         <div class="card-body">
           <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Company</th><th>Stage</th><th class="num">Premium</th><th>Owner</th></tr></thead>
           <tbody>${myPipeline.map(pipelineRow).join("") || `<tr><td colspan="4" class="empty">No open cases in your book.</td></tr>`}</tbody></table></div>
@@ -94,7 +99,7 @@
       <div class="card-body">
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Company</th><th>Product</th><th class="num">Premium</th><th>Expiry</th><th>Owner</th><th></th></tr></thead>
         <tbody>${DB.RENEWALS.map(r => `<tr>
-          <td class="cell-main">${U.esc(r.company)}</td><td>${U.esc(r.product)}</td><td class="num">${U.fmtCr(r.premium)}</td>
+          <td class="cell-main">${U.esc(r.company)}</td><td>${U.esc(r.product)}</td><td class="num">${U.fmtOMR(r.premium)}</td>
           <td class="${U.daysUntil(r.expiry) <= 45 ? "due-hot" : ""}">${U.dueLabel(r.expiry)}</td>
           <td>${U.esc(U.salesExec(r.owner).name)}</td>
           <td><button class="btn btn-sm" data-action="renewal-stub" data-company="${U.esc(r.company)}">Start Renewal</button></td>
@@ -111,7 +116,8 @@
   function leadFormHtml() {
     const industryOpts = DB.INDUSTRIES.map(i => `<option value="${i.code}">${U.esc(i.label)}</option>`).join("");
     const sizeOpts = DB.CORPORATE_SIZE_BANDS.map(b => `<option value="${b}">${b} employees</option>`).join("");
-    const brokerOpts = `<option value="">— Direct business —</option>` + DB.BROKERS.map(b => `<option value="${b.id}">${U.esc(b.name)}</option>`).join("");
+    const actingBroker = DB.CURRENT_USER.role === "Broker" ? DB.BROKERS.find(b => b.id === DB.CURRENT_USER.brokerId) : null;
+    const brokerOpts = `<option value="">— Direct business —</option>` + DB.BROKERS.map(b => `<option value="${b.id}" ${actingBroker && b.id === actingBroker.id ? "selected" : ""}>${U.esc(b.name)}</option>`).join("");
     return `
     <form id="leadForm" class="form-grid">
       <div class="field full"><label>Company Name <span style="color:var(--red)">*</span></label><input class="input" name="companyName" placeholder="Min 3 characters" required></div>
@@ -127,9 +133,10 @@
         </select></div>
       <div class="field"><label>Mobile <span style="color:var(--red)">*</span></label><input class="input" name="mobile" placeholder="e.g. 91234567" maxlength="9"></div>
       <div class="field"><label>Email <span style="color:var(--red)">*</span></label><input class="input" name="email" type="email"></div>
-      <div class="field"><label>Broker</label><select class="select" name="brokerId">${brokerOpts}</select></div>
+      <div class="field"><label>Broker</label><select class="select" name="brokerId" ${actingBroker ? "disabled" : ""}>${brokerOpts}</select>
+        ${actingBroker ? `<input type="hidden" name="brokerId" value="${actingBroker.id}"><div class="hint">Co-created by ${U.esc(DB.CURRENT_USER.name)} (${U.esc(actingBroker.name)}).</div>` : ""}</div>
       <div class="field"><label>Lead Source <span style="color:var(--red)">*</span></label><select class="select" name="leadSource">
-        <option>Referral</option><option>Broker</option><option>Digital</option><option>Cold Call</option><option>Renewal</option><option>Event</option></select></div>
+        <option ${actingBroker ? "selected" : ""}>Broker</option><option>Referral</option><option>Digital</option><option>Cold Call</option><option>Renewal</option><option>Event</option></select></div>
       <div class="field"><label>Expected Employee Count <span style="color:var(--red)">*</span></label><input class="input" name="expectedEmployeeCount" type="number" min="1"></div>
       <div class="field full"><label>Products <span style="color:var(--red)">*</span></label>
         <div class="check-row">
@@ -140,6 +147,10 @@
   }
 
   ACTIONS["open-new-lead"] = function () {
+    if (!["Sales Executive", "Broker"].includes(DB.CURRENT_USER.role)) {
+      U.toast("New Lead is enabled for Sales Executive and Broker roles only.", "err");
+      return;
+    }
     U.openModal("New Lead — Screen 2", leadFormHtml(),
       `<button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-amber" data-action="submit-new-lead">Save Lead</button>`);
   };
@@ -167,8 +178,11 @@
 
     const dup = DB.CASES.find(c => c.lead.companyName.toLowerCase() === companyName.toLowerCase() && c.lead.mobile === mobile);
     const id = "EB-2026-0" + (100 + DB.CASES.length);
+    // A Broker persona can co-create the lead (FRD §3), but the internal pipeline still
+    // needs a Sales Executive owner — brokers don't carry one themselves.
+    const ownerId = DB.CURRENT_USER.role === "Sales Executive" ? DB.CURRENT_USER.id : "U-SE-01";
     const kase = {
-      id, createdDate: DB.TODAY, stage: "Lead", salesExecutiveId: DB.CURRENT_USER.id,
+      id, createdDate: DB.TODAY, stage: "Lead", salesExecutiveId: ownerId,
       brokerId: fd.get("brokerId") || null, geography, currency: GEO_CURRENCY[geography] || "OMR",
       lead: {
         companyName, industry: fd.get("industry"), corporateSize: fd.get("corporateSize"),
