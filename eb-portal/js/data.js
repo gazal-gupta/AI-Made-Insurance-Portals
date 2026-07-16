@@ -1,5 +1,5 @@
 /* ============================================================
-   Parivaar Assurance — Employee Benefits Sales Portal
+   Al Falaj Assurance — Employee Benefits Sales Portal (Oman)
    Mock data layer + business-rule calculators.
    In-memory sample book — refresh the page to reset.
    ============================================================ */
@@ -10,49 +10,49 @@
     "Senior Underwriter", "Finance", "Operations", "Business Head", "Policy Administration Team"];
 
   const PERSONAS = [
-    { id: "U-SE-01", name: "Rohan Mehta", role: "Sales Executive", initials: "RM" },
-    { id: "U-SM-01", name: "Karan Malhotra", role: "Sales Manager", initials: "KM" },
-    { id: "U-UW-01", name: "Priya Nair", role: "Underwriter", initials: "PN" },
-    { id: "U-SUW-01", name: "Vikram Rao", role: "Senior Underwriter", initials: "VR" },
-    { id: "U-FIN-01", name: "Sunita Agarwal", role: "Finance", initials: "SA" },
-    { id: "U-BH-01", name: "Ashok Kapoor", role: "Business Head", initials: "AK" }
+    { id: "U-SE-01", name: "Salim Al Balushi", role: "Sales Executive", initials: "SB" },
+    { id: "U-SM-01", name: "Nasser Al Rashdi", role: "Sales Manager", initials: "NR" },
+    { id: "U-UW-01", name: "Mariam Al Hinai", role: "Underwriter", initials: "MH" },
+    { id: "U-SUW-01", name: "Khalid Al Farsi", role: "Senior Underwriter", initials: "KF" },
+    { id: "U-FIN-01", name: "Layla Al Zadjali", role: "Finance", initials: "LZ" },
+    { id: "U-BH-01", name: "Hamed Al Kindi", role: "Business Head", initials: "HK" }
   ];
   const CURRENT_USER = Object.assign({}, PERSONAS[0]);
 
   const SALES_EXECS = [
-    { id: "U-SE-01", name: "Rohan Mehta", role: "Sales Executive", manager: "U-SM-01" },
-    { id: "U-SE-02", name: "Ananya Desai", role: "Sales Executive", manager: "U-SM-01" },
-    { id: "U-SM-01", name: "Karan Malhotra", role: "Sales Manager" }
+    { id: "U-SE-01", name: "Salim Al Balushi", role: "Sales Executive", manager: "U-SM-01" },
+    { id: "U-SE-02", name: "Fatima Al Saidi", role: "Sales Executive", manager: "U-SM-01" },
+    { id: "U-SM-01", name: "Nasser Al Rashdi", role: "Sales Manager" }
   ];
   const UNDERWRITERS = [
-    { id: "U-UW-01", name: "Priya Nair", role: "Underwriter" },
-    { id: "U-SUW-01", name: "Vikram Rao", role: "Senior Underwriter" }
+    { id: "U-UW-01", name: "Mariam Al Hinai", role: "Underwriter" },
+    { id: "U-SUW-01", name: "Khalid Al Farsi", role: "Senior Underwriter" }
   ];
-  const FINANCE = [{ id: "U-FIN-01", name: "Sunita Agarwal", role: "Finance" }];
-  const BUSINESS_HEAD = { id: "U-BH-01", name: "Ashok Kapoor", role: "Business Head" };
-  const FINANCE_HEAD = { id: "U-FH-01", name: "Meera Chatterjee", role: "Finance Head" };
-  const OPERATIONS = { id: "U-OPS-01", name: "Deepak Joshi", role: "Operations" };
-  const POLICY_ADMIN = { id: "U-PA-01", name: "Radha Pillai", role: "Policy Administration Team" };
+  const FINANCE = [{ id: "U-FIN-01", name: "Layla Al Zadjali", role: "Finance" }];
+  const BUSINESS_HEAD = { id: "U-BH-01", name: "Hamed Al Kindi", role: "Business Head" };
+  const FINANCE_HEAD = { id: "U-FH-01", name: "Noora Al Harthy", role: "Finance Head" };
+  const OPERATIONS = { id: "U-OPS-01", name: "Yousuf Al Maskari", role: "Operations" };
+  const POLICY_ADMIN = { id: "U-PA-01", name: "Amal Al Lawati", role: "Policy Administration Team" };
 
   const BROKERS = [
-    { id: "BRK-01", name: "Trinity Insurance Brokers Pvt Ltd", contact: "Nikhil Bhatt", email: "nikhil.bhatt@trinitybrokers.in" },
-    { id: "BRK-02", name: "Coastline Risk Advisors LLP", contact: "Isha Kulkarni", email: "isha.k@coastlinerisk.in" },
-    { id: "BRK-03", name: "RMS Insurance Brokers LLC", contact: "Yousuf Al Balushi", email: "yousuf.albalushi@rmsme.com",
-      note: "Established 1979 — first licensed insurance broker in the Sultanate of Oman; largest Employee Benefits broker in Oman, also operating in the UAE and Qatar." }
+    { id: "BRK-01", name: "RMS Insurance Brokers LLC", contact: "Yousuf Al Balushi", email: "yousuf.albalushi@rmsme.com",
+      note: "Established 1979 — first licensed insurance broker in the Sultanate of Oman; largest Employee Benefits broker in Oman, also operating in the UAE and Qatar." },
+    { id: "BRK-02", name: "Gulf Shield Insurance Brokers LLC", contact: "Rashid Al Amri", email: "rashid.alamri@gulfshieldbrokers.om" },
+    { id: "BRK-03", name: "Al Nahda Brokerage Services LLC", contact: "Suad Al Riyami", email: "suad.alriyami@alnahdabrokers.om" }
   ];
 
   const INDUSTRIES = [
-    { code: "IT", label: "IT / ITES", risk: "Low" },
-    { code: "BFSI", label: "Banking, Financial Services & Insurance", risk: "Low" },
-    { code: "PHARMA", label: "Pharmaceuticals", risk: "Medium" },
-    { code: "TEXTILE", label: "Textiles & Apparel", risk: "Medium" },
-    { code: "MFG", label: "Engineering & Manufacturing", risk: "Medium" },
-    { code: "LOGISTICS", label: "Logistics & Freight", risk: "Medium" },
-    { code: "RETAIL", label: "Retail & FMCG", risk: "Low" },
-    { code: "FOOD", label: "Food Processing", risk: "Medium" },
+    { code: "ENERGY", label: "Oil, Gas & Energy", risk: "High" },
+    { code: "LOGISTICS", label: "Logistics, Ports & Free Zones", risk: "Medium" },
     { code: "CONSTR", label: "Construction & Infrastructure", risk: "High" },
-    { code: "CHEM", label: "Chemicals & Mining", risk: "High" },
-    { code: "ENERGY", label: "Energy & Power", risk: "High" }
+    { code: "MFG", label: "Manufacturing & Industrial", risk: "Medium" },
+    { code: "BFSI", label: "Banking & Financial Services", risk: "Low" },
+    { code: "TOURISM", label: "Tourism & Hospitality", risk: "Medium" },
+    { code: "RETAIL", label: "Retail & Trading", risk: "Low" },
+    { code: "FOOD", label: "Food Processing & Agribusiness", risk: "Medium" },
+    { code: "TELECOM", label: "Telecommunications", risk: "Low" },
+    { code: "HEALTHCARE", label: "Healthcare & Pharma", risk: "Medium" },
+    { code: "GOVT", label: "Government & Semi-Government Enterprises", risk: "Low" }
   ];
   const industry = code => INDUSTRIES.find(i => i.code === code) || INDUSTRIES[0];
 
@@ -63,7 +63,8 @@
     if (count <= 1000) return "201–1000";
     return "1000+";
   }
-  const FCL_TABLE = { "1–50": 500000, "51–200": 1000000, "201–1000": 2000000, "1000+": 3000000 };
+  /* Free Cover Limit by group-size band, in OMR */
+  const FCL_TABLE = { "1–50": 15000, "51–200": 30000, "201–1000": 60000, "1000+": 90000 };
 
   /* ---------- Approval Matrix (Section 6, verbatim) ---------- */
   const APPROVAL_MATRIX = [
@@ -105,12 +106,13 @@
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   }
-  const MALE = ["Rohan", "Aarav", "Vikram", "Karan", "Suresh", "Anil", "Rajesh", "Sanjay", "Arjun", "Nikhil",
-    "Manoj", "Deepak", "Ravi", "Vivek", "Ashok", "Pranav", "Kunal", "Siddharth", "Harish", "Amitabh"];
-  const FEMALE = ["Priya", "Anjali", "Neha", "Pooja", "Kavya", "Meera", "Sneha", "Divya", "Ritu", "Shalini",
-    "Anita", "Kirti", "Nisha", "Swati", "Radha", "Isha", "Tanvi", "Rekha", "Sunita", "Preeti"];
-  const SURNAMES = ["Sharma", "Verma", "Iyer", "Nair", "Gupta", "Menon", "Reddy", "Rao", "Kulkarni", "Joshi",
-    "Mehta", "Patel", "Singh", "Chatterjee", "Bhatt", "Malhotra", "Kapoor", "Desai", "Pillai", "Agarwal"];
+  const MALE = ["Ahmed", "Salim", "Khalid", "Nasser", "Hamed", "Said", "Yousuf", "Waleed", "Rashid", "Talal",
+    "Sultan", "Mohammed", "Abdullah", "Faisal", "Majid", "Zayed", "Hilal", "Adil", "Marwan", "Bader"];
+  const FEMALE = ["Fatima", "Aisha", "Mariam", "Layla", "Noora", "Salma", "Amal", "Huda", "Reem", "Shaikha",
+    "Maha", "Wafa", "Asma", "Zainab", "Munira", "Ghalia", "Rana", "Dina", "Iman", "Suad"];
+  const SURNAMES = ["Al Balushi", "Al Habsi", "Al Hinai", "Al Farsi", "Al Rashdi", "Al Zadjali", "Al Kindi",
+    "Al Saidi", "Al Harthy", "Al Maskari", "Al Lawati", "Al Busaidi", "Al Ghafri", "Al Mahrooqi", "Al Wahaibi",
+    "Al Kalbani", "Al Amri", "Al Riyami", "Al Shukaili", "Al Abri"];
 
   function isoDob(rand, minAge, maxAge, asOf) {
     // day-offset from asOf, not year+random-month/day, so the resulting computeAge()
@@ -131,7 +133,7 @@
       const last = SURNAMES[Math.floor(rand() * SURNAMES.length)];
       const outOfBand = opts.outOfBandIdx && opts.outOfBandIdx.includes(i);
       const dob = isoDob(rand, outOfBand ? 82 : (opts.minAge || 21), outOfBand ? 85 : (opts.maxAge || 58), opts.asOf);
-      const salary = opts.withSalary ? Math.round((300000 + rand() * 2200000) / 5000) * 5000 : null;
+      const salary = opts.withSalary ? Math.round((3000 + rand() * 24000) / 50) * 50 : null;
       const empId = opts.prefix + String(i).padStart(4, "0");
       const isBlank = opts.blankNameIdx === i;
       rows.push({
@@ -246,23 +248,23 @@
     return "Amber";
   }
 
-  /* ---------- premium calculators (Screen 12) ---------- */
-  const SI_RATE = { 300000: 4200, 500000: 6800, 1000000: 10500, 2000000: 15800 };
+  /* ---------- premium calculators (Screen 12) — OMR ---------- */
+  const SI_RATE = { 5000: 140, 10000: 230, 20000: 370, 30000: 480 };
   function calcGMCPremium(kase, siOverride, ridersOverride) {
     const b = kase.benefitGMC; if (!b) return 0;
     const lives = kase.censusValidation ? kase.censusValidation.accepted : (kase.employer ? kase.employer.employeeCount : 0);
     const si = siOverride || b.baseSumInsured;
-    let perLife = SI_RATE[si] || Math.round(si * 0.012);
+    let perLife = SI_RATE[si] || Math.round(si * 0.024);
     if (b.familyDefinition && b.familyDefinition.includes("Children")) perLife *= 1.6;
     if (b.corporateBuffer) perLife += Math.round(b.corporateBuffer * 0.008);
-    if (b.maternity) perLife += 950;
+    if (b.maternity) perLife += 22;
     const riders = ridersOverride || b;
-    if (riders.opd) perLife += 1400;
-    if (riders.dental) perLife += 350;
-    if (riders.vision) perLife += 250;
+    if (riders.opd) perLife += 32;
+    if (riders.dental) perLife += 8;
+    if (riders.vision) perLife += 6;
     if (b.copay) perLife *= (1 - b.copay / 200);
     const loading = kase.underwriting && kase.underwriting.loadingPct ? 1 + kase.underwriting.loadingPct / 100 : 1;
-    return Math.round(lives * perLife * loading / 100) * 100;
+    return Math.round(lives * perLife * loading);
   }
   function calcGTLPremium(kase) {
     const g = kase.benefitGTL; if (!g) return 0;
@@ -270,15 +272,15 @@
     let total = 0;
     rows.forEach(r => {
       const cover = g.coverType === "Flat Cover" ? g.flatCover : Math.min(Math.max((r.salary || 0) * g.salaryMultiple, g.minimumCover), g.maximumCover);
-      let rate = 0.55; // per 1000 sum assured, annual
-      if (r.age > 45) rate = 0.95; else if (r.age > 35) rate = 0.7;
+      let rate = 1.1; // per 1000 sum assured, annual
+      if (r.age > 45) rate = 2.4; else if (r.age > 35) rate = 1.6;
       total += (cover / 1000) * rate;
     });
     if (g.terminalIllness) total *= 1.03;
     if (g.accidentalDeath) total *= 1.05;
     if (g.permanentDisability) total *= 1.04;
     const loading = kase.underwriting && kase.underwriting.loadingPct ? 1 + kase.underwriting.loadingPct / 100 : 1;
-    return Math.round(total * loading / 10) * 10;
+    return Math.round(total * loading);
   }
   function basePremium(kase) { return calcGMCPremium(kase) + calcGTLPremium(kase); }
 
@@ -287,11 +289,11 @@
     const base = basePremium(kase);
     const opts = [
       { id: "A", name: "Option A — As Configured", premium: base,
-        benefits: [kase.benefitGMC ? `GMC — SI ₹${(kase.benefitGMC.baseSumInsured/100000)}L, ${kase.benefitGMC.familyDefinition}` : null,
+        benefits: [kase.benefitGMC ? `GMC — SI OMR ${kase.benefitGMC.baseSumInsured.toLocaleString()}, ${kase.benefitGMC.familyDefinition}` : null,
                    kase.benefitGTL ? `GTL — ${kase.benefitGTL.coverType}` : null].filter(Boolean) },
-      { id: "B", name: "Option B — Enhanced", premium: Math.round(base * 1.22 / 100) * 100,
+      { id: "B", name: "Option B — Enhanced", premium: Math.round(base * 1.22),
         benefits: [kase.benefitGMC ? "GMC — Higher SI slab, OPD rider added" : null, kase.benefitGTL ? "GTL — Accidental Death rider added" : null].filter(Boolean) },
-      { id: "C", name: "Option C — Lean", premium: Math.round(base * 0.84 / 100) * 100,
+      { id: "C", name: "Option C — Lean", premium: Math.round(base * 0.84),
         benefits: [kase.benefitGMC ? "GMC — Base SI, no optional riders" : null, kase.benefitGTL ? "GTL — Flat Cover, no riders" : null].filter(Boolean) }
     ];
     return opts;
@@ -329,65 +331,38 @@
 
   function addDays(iso, n) { const d = new Date(iso); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
 
-  /* 1 — NimbusTech Solutions: fresh Lead only */
+  /* 1 — Al Amerat Tech Solutions: fresh Lead only */
   CASES.push({
     id: "EB-2026-0001", createdDate: "2026-07-14", stage: "Lead",
     salesExecutiveId: "U-SE-01", brokerId: null,
     lead: {
-      companyName: "NimbusTech Solutions Pvt Ltd", industry: "IT", corporateSize: "51–200",
-      contactPerson: "Anjali Verma", designation: "Head — HR", mobile: "9821044567", email: "anjali.verma@nimbustech.in",
-      leadSource: "Digital", expectedEmployeeCount: 140, products: ["GMC"], createdDate: "2026-07-14", duplicateFlag: false
+      companyName: "Al Amerat Tech Solutions LLC", industry: "TELECOM", corporateSize: "51–200",
+      contactPerson: "Aisha Al Habsi", designation: "HR Manager", mobile: "91234567", email: "aisha.alhabsi@alamerattech.om",
+      leadSource: "Digital", expectedEmployeeCount: 130, products: ["GMC"], createdDate: "2026-07-14", duplicateFlag: false
     },
     opportunity: null, employer: null, policyReq: null, census: null, censusValidation: null,
     benefitGMC: null, benefitGTL: null, prevInsurance: null, underwriting: null,
     quotes: [], selectedQuoteId: null, proposal: null, negotiation: null, approval: null, payment: null, issuance: null
   });
 
-  /* 2 — BluePeak Logistics: Opportunity + Employer Profile in progress */
-  CASES.push({
-    id: "EB-2026-0002", createdDate: "2026-06-30", stage: "Opportunity Created",
-    salesExecutiveId: "U-SE-02", brokerId: "BRK-01",
-    lead: {
-      companyName: "BluePeak Logistics Pvt Ltd", industry: "LOGISTICS", corporateSize: "201–1000",
-      contactPerson: "Suresh Iyer", designation: "VP — People Operations", mobile: "9845123390", email: "suresh.iyer@bluepeaklog.in",
-      leadSource: "Broker", expectedEmployeeCount: 420, products: ["GMC", "GTL"], createdDate: "2026-06-30", duplicateFlag: false
-    },
-    opportunity: {
-      name: "BluePeak Logistics - GMC/GTL - 2026", salesOwnerId: "U-SE-02", expectedPremium: 8200000,
-      expectedCloseDate: "2026-08-20", probability: 60, crmStage: "Needs Analysis", products: ["GMC", "GTL"],
-      notes: "Employer keen on family floater cover; wants GTL flat cover for warehouse staff.", attachments: []
-    },
-    employer: {
-      legalName: "BluePeak Logistics Private Limited", tradeName: "BluePeak Logistics", pan: "AACCB1234F",
-      gst: "27AACCB1234F1Z5", industry: "LOGISTICS", annualTurnover: 480000000, employeeCount: 420,
-      officeLocations: ["Mumbai (HO)", "Pune", "Nagpur"], hrContact: "Suresh Iyer / suresh.iyer@bluepeaklog.in / 9845123390",
-      financeContact: "Ritu Shalini / ritu.shalini@bluepeaklog.in", payrollFrequency: "Monthly",
-      previousInsurer: "", currentBroker: "Trinity Insurance Brokers Pvt Ltd"
-    },
-    policyReq: null, census: null, censusValidation: null, benefitGMC: null, benefitGTL: null, prevInsurance: null,
-    underwriting: null, quotes: [], selectedQuoteId: null, proposal: null, negotiation: null, approval: null, payment: null, issuance: null
-  });
-
-  /* 2b — Al Bahja Power & Energy LLC (Oman): brokered by RMS Insurance Brokers — demonstrates
-     geography parameterisation (Section 1.4) beyond the India-first default: CR/VAT identity
-     format instead of PAN/GST, OMR currency, +968 mobile format. */
+  /* 2 — Al Bahja Power & Energy: Opportunity + Employer Profile in progress, brokered by RMS */
   CASES.push({
     id: "EB-2026-0010", createdDate: "2026-07-10", stage: "Opportunity Created",
-    salesExecutiveId: "U-SE-02", brokerId: "BRK-03", geography: "Oman", currency: "OMR",
+    salesExecutiveId: "U-SE-02", brokerId: "BRK-01",
     lead: {
       companyName: "Al Bahja Power & Energy LLC", industry: "ENERGY", corporateSize: "201–1000",
       contactPerson: "Fatma Al Habsi", designation: "HR & Admin Manager", mobile: "92345678", email: "fatma.alhabsi@albahjapower.om",
       leadSource: "Broker", expectedEmployeeCount: 450, products: ["GMC", "GTL"], createdDate: "2026-07-10", duplicateFlag: false
     },
     opportunity: {
-      name: "Al Bahja Power & Energy - GMC/GTL - 2026", salesOwnerId: "U-SE-02", expectedPremium: 185000,
+      name: "Al Bahja Power & Energy - GMC/GTL - 2026", salesOwnerId: "U-SE-02", expectedPremium: 155000,
       expectedCloseDate: "2026-09-05", probability: 55, crmStage: "Needs Analysis", products: ["GMC", "GTL"],
       notes: "Introduced by RMS Insurance Brokers (Muscat) — largest EB broker in Oman, est. 1979. Power-plant O&M workforce; wants GTL accidental death rider given site risk profile.",
       attachments: []
     },
     employer: {
       legalName: "Al Bahja Power & Energy LLC", tradeName: "Al Bahja Power", crNumber: "1284563", vatin: "OM1100056324",
-      industry: "ENERGY", annualTurnover: 42000000, employeeCount: 450,
+      industry: "ENERGY", annualTurnover: 18000000, employeeCount: 450,
       officeLocations: ["Muscat (HO)", "Sohar", "Duqm"], hrContact: "Fatma Al Habsi / fatma.alhabsi@albahjapower.om / +968 9234 5678",
       financeContact: "Salim Al Rawahi / salim.alrawahi@albahjapower.om", payrollFrequency: "Monthly",
       previousInsurer: "", currentBroker: "RMS Insurance Brokers LLC"
@@ -396,62 +371,87 @@
     underwriting: null, quotes: [], selectedQuoteId: null, proposal: null, negotiation: null, approval: null, payment: null, issuance: null
   });
 
-  /* 3 — Solaris Textiles: Census uploaded, validation has errors pending fix */
+  /* 3 — Salalah Gateway Logistics: Opportunity + Employer Profile in progress, brokered by Gulf Shield */
+  CASES.push({
+    id: "EB-2026-0002", createdDate: "2026-06-30", stage: "Opportunity Created",
+    salesExecutiveId: "U-SE-02", brokerId: "BRK-02",
+    lead: {
+      companyName: "Salalah Gateway Logistics LLC", industry: "LOGISTICS", corporateSize: "201–1000",
+      contactPerson: "Waleed Al Kalbani", designation: "VP — People Operations", mobile: "95123390", email: "waleed.alkalbani@salalahgateway.om",
+      leadSource: "Broker", expectedEmployeeCount: 420, products: ["GMC", "GTL"], createdDate: "2026-06-30", duplicateFlag: false
+    },
+    opportunity: {
+      name: "Salalah Gateway Logistics - GMC/GTL - 2026", salesOwnerId: "U-SE-02", expectedPremium: 150000,
+      expectedCloseDate: "2026-08-20", probability: 60, crmStage: "Needs Analysis", products: ["GMC", "GTL"],
+      notes: "Employer keen on family floater cover; wants GTL flat cover for port and warehouse staff.", attachments: []
+    },
+    employer: {
+      legalName: "Salalah Gateway Logistics LLC", tradeName: "Salalah Gateway Logistics", crNumber: "1198432", vatin: "OM1100078812",
+      industry: "LOGISTICS", annualTurnover: 9500000, employeeCount: 420,
+      officeLocations: ["Salalah (HO)", "Muscat", "Duqm"], hrContact: "Waleed Al Kalbani / waleed.alkalbani@salalahgateway.om / +968 9512 3390",
+      financeContact: "Rana Al Ghafri / rana.alghafri@salalahgateway.om", payrollFrequency: "Monthly",
+      previousInsurer: "", currentBroker: "Gulf Shield Insurance Brokers LLC"
+    },
+    policyReq: null, census: null, censusValidation: null, benefitGMC: null, benefitGTL: null, prevInsurance: null,
+    underwriting: null, quotes: [], selectedQuoteId: null, proposal: null, negotiation: null, approval: null, payment: null, issuance: null
+  });
+
+  /* 4 — Dhofar Al Waha Trading & Textiles: Census uploaded, validation has errors pending fix */
   {
     const asOf = "2026-08-01";
-    const rows = genCensus(3301, 245, { asOf, minAge: 18, maxAge: 79, withSalary: false, prefix: "SOL-",
+    const rows = genCensus(3301, 245, { asOf, minAge: 18, maxAge: 79, withSalary: false, prefix: "DAW-",
       outOfBandIdx: [7], duplicateIdx: 15, blankNameIdx: 21 });
     CASES.push({
       id: "EB-2026-0003", createdDate: "2026-06-10", stage: "Census Uploaded",
       salesExecutiveId: "U-SE-01", brokerId: null,
-      lead: { companyName: "Solaris Textiles Ltd", industry: "TEXTILE", corporateSize: "201–1000",
-        contactPerson: "Karan Singh", designation: "CHRO", mobile: "9900112233", email: "karan.singh@solaristextiles.in",
+      lead: { companyName: "Dhofar Al Waha Trading & Textiles LLC", industry: "MFG", corporateSize: "201–1000",
+        contactPerson: "Talal Al Mahrooqi", designation: "CHRO", mobile: "99001122", email: "talal.almahrooqi@dhofarwaha.om",
         leadSource: "Referral", expectedEmployeeCount: 260, products: ["GMC"], createdDate: "2026-06-10", duplicateFlag: false },
-      opportunity: { name: "Solaris Textiles - GMC - 2026", salesOwnerId: "U-SE-01", expectedPremium: 3100000,
+      opportunity: { name: "Dhofar Al Waha Trading & Textiles - GMC - 2026", salesOwnerId: "U-SE-01", expectedPremium: 47000,
         expectedCloseDate: "2026-08-10", probability: 55, crmStage: "Quote", products: ["GMC"], notes: "", attachments: [] },
-      employer: { legalName: "Solaris Textiles Limited", tradeName: "Solaris Textiles", pan: "AABCS5678K",
-        gst: "24AABCS5678K1Z2", industry: "TEXTILE", annualTurnover: 210000000, employeeCount: 260,
-        officeLocations: ["Surat"], hrContact: "Karan Singh / karan.singh@solaristextiles.in / 9900112233",
+      employer: { legalName: "Dhofar Al Waha Trading & Textiles LLC", tradeName: "Dhofar Al Waha", crNumber: "1345678",
+        vatin: "OM1100091234", industry: "MFG", annualTurnover: 4200000, employeeCount: 260,
+        officeLocations: ["Salalah"], hrContact: "Talal Al Mahrooqi / talal.almahrooqi@dhofarwaha.om / 99001122",
         financeContact: "", payrollFrequency: "Monthly", previousInsurer: "", currentBroker: "" },
       policyReq: { products: ["GMC"], effectiveDate: "2026-08-01", duration: "12 months", policyType: "Fresh",
         employerContribution: "100% Employer-funded", splitPct: null, coverageBasis: "Family Floater" },
-      census: { fileName: "Solaris_Textiles_Census_v2.xlsx", uploadedAt: "2026-07-15", rows, hrConfirmedVariance: false },
+      census: { fileName: "Dhofar_Al_Waha_Census_v2.xlsx", uploadedAt: "2026-07-15", rows, hrConfirmedVariance: false },
       censusValidation: validateCensus(rows, asOf, 18, 79, false),
       benefitGMC: null, benefitGTL: null, prevInsurance: null, underwriting: null,
       quotes: [], selectedQuoteId: null, proposal: null, negotiation: null, approval: null, payment: null, issuance: null
     });
   }
 
-  /* 4 — Vertex Engineering: Underwriting — Amber (loss ratio breach, Portability) */
+  /* 5 — Sohar Steel Engineering: Underwriting — Amber (loss ratio breach, Portability) */
   {
     const asOf = "2026-09-01";
-    const rows = genCensus(4401, 1150, { asOf, minAge: 21, maxAge: 60, withSalary: true, prefix: "VTX-" });
+    const rows = genCensus(4401, 1150, { asOf, minAge: 21, maxAge: 60, withSalary: true, prefix: "SSE-" });
     const kase = {
       id: "EB-2026-0004", createdDate: "2026-05-20", stage: "Underwriting",
       salesExecutiveId: "U-SE-01", brokerId: "BRK-02",
-      lead: { companyName: "Vertex Engineering Pvt Ltd", industry: "MFG", corporateSize: "1000+",
-        contactPerson: "Manoj Kulkarni", designation: "Head HR", mobile: "9811223344", email: "manoj.kulkarni@vertexeng.in",
+      lead: { companyName: "Sohar Steel Engineering LLC", industry: "MFG", corporateSize: "1000+",
+        contactPerson: "Marwan Al Wahaibi", designation: "Head HR", mobile: "98112233", email: "marwan.alwahaibi@soharsteel.om",
         leadSource: "Broker", expectedEmployeeCount: 1150, products: ["GMC", "GTL"], createdDate: "2026-05-20", duplicateFlag: false },
-      opportunity: { name: "Vertex Engineering - GMC/GTL - 2026", salesOwnerId: "U-SE-01", expectedPremium: 21500000,
+      opportunity: { name: "Sohar Steel Engineering - GMC/GTL - 2026", salesOwnerId: "U-SE-01", expectedPremium: 450000,
         expectedCloseDate: "2026-09-15", probability: 65, crmStage: "Quote", products: ["GMC", "GTL"],
-        notes: "Portability from incumbent insurer; prior claims history under review.", attachments: [{ name: "Vertex_Prior_Policy.pdf", size: "1.4 MB" }] },
-      employer: { legalName: "Vertex Engineering Private Limited", tradeName: "Vertex Engineering", pan: "AACCV9988M",
-        gst: "27AACCV9988M1ZR", industry: "MFG", annualTurnover: 1650000000, employeeCount: 1150,
-        officeLocations: ["Pune", "Chakan", "Aurangabad"], hrContact: "Manoj Kulkarni / manoj.kulkarni@vertexeng.in / 9811223344",
-        financeContact: "Preeti Rao / preeti.rao@vertexeng.in", payrollFrequency: "Monthly",
-        previousInsurer: "Garuda General Insurance Co Ltd", currentBroker: "Coastline Risk Advisors LLP" },
+        notes: "Portability from incumbent insurer; prior claims history under review.", attachments: [{ name: "Sohar_Prior_Policy.pdf", size: "1.4 MB" }] },
+      employer: { legalName: "Sohar Steel Engineering LLC", tradeName: "Sohar Steel Engineering", crNumber: "1099887",
+        vatin: "OM1100034521", industry: "MFG", annualTurnover: 65000000, employeeCount: 1150,
+        officeLocations: ["Sohar (HO)", "Sohar Port Free Zone", "Ibri"], hrContact: "Marwan Al Wahaibi / marwan.alwahaibi@soharsteel.om / 98112233",
+        financeContact: "Munira Al Ghafri / munira.alghafri@soharsteel.om", payrollFrequency: "Monthly",
+        previousInsurer: "Gulf Crescent Insurance Co SAOG", currentBroker: "Gulf Shield Insurance Brokers LLC" },
       policyReq: { products: ["GMC", "GTL"], effectiveDate: asOf, duration: "12 months", policyType: "Portability",
         employerContribution: "Shared (Employer/Employee split)", splitPct: { employer: 75, employee: 25 }, coverageBasis: "Family Floater" },
-      census: { fileName: "Vertex_Engineering_Census_Final.xlsx", uploadedAt: "2026-07-05", rows },
+      census: { fileName: "Sohar_Steel_Census_Final.xlsx", uploadedAt: "2026-07-05", rows },
       censusValidation: validateCensus(rows, asOf, 18, 79, true),
-      benefitGMC: { baseSumInsured: 500000, familyDefinition: "Employee, Spouse, 2 Children", roomRent: "Twin Sharing",
-        copay: 10, deductible: 0, corporateBuffer: 2000000, maternity: true, pedWaived: true, dayCare: true, opd: false, dental: false, vision: false },
-      benefitGTL: { coverType: "Salary Multiple", flatCover: null, salaryMultiple: 3, minimumCover: 500000, maximumCover: 3000000,
+      benefitGMC: { baseSumInsured: 10000, familyDefinition: "Employee, Spouse, 2 Children", roomRent: "Twin Sharing",
+        copay: 10, deductible: 0, corporateBuffer: 20000, maternity: true, pedWaived: true, dayCare: true, opd: false, dental: false, vision: false },
+      benefitGTL: { coverType: "Salary Multiple", flatCover: null, salaryMultiple: 3, minimumCover: 10000, maximumCover: 90000,
         terminalIllness: true, accidentalDeath: true, permanentDisability: false },
-      prevInsurance: { currentInsurer: "Garuda General Insurance Co Ltd", policyNumber: "GGI/GMC/2025/88231",
-        policyStart: "2025-09-01", policyEnd: "2026-08-31", livesCovered: 1080, premium: 18400000, claims: 13200000,
-        majorClaims: "Two ongoing cardiac-surgery claims exceeding ₹10L each; one maternity complication claim.",
-        reportFile: "Vertex_Claim_Experience_2025-26.pdf" },
+      prevInsurance: { currentInsurer: "Gulf Crescent Insurance Co SAOG", policyNumber: "GCI/GMC/2025/44210",
+        policyStart: "2025-09-01", policyEnd: "2026-08-31", livesCovered: 1080, premium: 230000, claims: 165000,
+        majorClaims: "Two ongoing cardiac-surgery claims exceeding OMR 5,000 each; one maternity complication claim.",
+        reportFile: "Sohar_Claim_Experience_2025-26.pdf" },
       underwriting: null, quotes: [], selectedQuoteId: null, proposal: null, negotiation: null, approval: null, payment: null, issuance: null
     };
     kase.underwriting = {
@@ -462,28 +462,28 @@
     CASES.push(kase);
   }
 
-  /* 5 — Crestline Retail: Underwriting — Red (FCL breach + High industry risk) */
+  /* 6 — Duqm Infrastructure & Construction: Underwriting — Red (FCL breach + High industry risk) */
   {
     const asOf = "2026-08-15";
-    const rows = genCensus(5501, 310, { asOf, minAge: 19, maxAge: 58, withSalary: true, prefix: "CRL-" });
+    const rows = genCensus(5501, 310, { asOf, minAge: 19, maxAge: 58, withSalary: true, prefix: "DIC-" });
     const kase = {
       id: "EB-2026-0005", createdDate: "2026-06-18", stage: "Underwriting",
       salesExecutiveId: "U-SE-02", brokerId: null,
-      lead: { companyName: "Crestline Retail Pvt Ltd", industry: "CONSTR", corporateSize: "201–1000",
-        contactPerson: "Harish Bhatt", designation: "HR Manager", mobile: "9765432109", email: "harish.bhatt@crestlineretail.in",
+      lead: { companyName: "Duqm Infrastructure & Construction LLC", industry: "CONSTR", corporateSize: "201–1000",
+        contactPerson: "Bader Al Shukaili", designation: "HR Manager", mobile: "97654321", email: "bader.alshukaili@duqminfra.om",
         leadSource: "Cold Call", expectedEmployeeCount: 310, products: ["GTL"], createdDate: "2026-06-18", duplicateFlag: false },
-      opportunity: { name: "Crestline Retail - GTL - 2026", salesOwnerId: "U-SE-02", expectedPremium: 2600000,
+      opportunity: { name: "Duqm Infrastructure & Construction - GTL - 2026", salesOwnerId: "U-SE-02", expectedPremium: 42000,
         expectedCloseDate: "2026-08-25", probability: 50, crmStage: "Quote", products: ["GTL"], notes: "Site workforce, high-value salary-multiple cover requested.", attachments: [] },
-      employer: { legalName: "Crestline Retail Private Limited", tradeName: "Crestline Retail", pan: "AACCC4455N",
-        gst: "06AACCC4455N1Z8", industry: "CONSTR", annualTurnover: 390000000, employeeCount: 310,
-        officeLocations: ["Gurugram", "Faridabad"], hrContact: "Harish Bhatt / harish.bhatt@crestlineretail.in / 9765432109",
+      employer: { legalName: "Duqm Infrastructure & Construction LLC", tradeName: "Duqm Infrastructure", crNumber: "1276543",
+        vatin: "OM1100067723", industry: "CONSTR", annualTurnover: 12000000, employeeCount: 310,
+        officeLocations: ["Duqm", "Al Amerat"], hrContact: "Bader Al Shukaili / bader.alshukaili@duqminfra.om / 97654321",
         financeContact: "", payrollFrequency: "Monthly", previousInsurer: "", currentBroker: "" },
       policyReq: { products: ["GTL"], effectiveDate: asOf, duration: "12 months", policyType: "Fresh",
         employerContribution: "100% Employer-funded", splitPct: null, coverageBasis: "Employee Only" },
-      census: { fileName: "Crestline_Retail_Census.xlsx", uploadedAt: "2026-07-10", rows },
+      census: { fileName: "Duqm_Infra_Census.xlsx", uploadedAt: "2026-07-10", rows },
       censusValidation: validateCensus(rows, asOf, 18, 79, true),
       benefitGMC: null,
-      benefitGTL: { coverType: "Salary Multiple", flatCover: null, salaryMultiple: 8, minimumCover: 500000, maximumCover: 8000000,
+      benefitGTL: { coverType: "Salary Multiple", flatCover: null, salaryMultiple: 8, minimumCover: 10000, maximumCover: 150000,
         terminalIllness: false, accidentalDeath: true, permanentDisability: true },
       prevInsurance: null, underwriting: null, quotes: [], selectedQuoteId: null, proposal: null, negotiation: null, approval: null, payment: null, issuance: null
     };
@@ -495,28 +495,28 @@
     CASES.push(kase);
   }
 
-  /* 6 — Kavya FoodWorks: Quote Generated / Proposal Shared */
+  /* 7 — Barka Fresh Foods: Quote Generated / Proposal Shared */
   {
     const asOf = "2026-07-25";
-    const rows = genCensus(6601, 165, { asOf, minAge: 20, maxAge: 57, withSalary: false, prefix: "KFW-" });
+    const rows = genCensus(6601, 165, { asOf, minAge: 20, maxAge: 57, withSalary: false, prefix: "BFF-" });
     const kase = {
       id: "EB-2026-0006", createdDate: "2026-06-01", stage: "Proposal Shared",
       salesExecutiveId: "U-SE-01", brokerId: null,
-      lead: { companyName: "Kavya FoodWorks Pvt Ltd", industry: "FOOD", corporateSize: "51–200",
-        contactPerson: "Divya Menon", designation: "HR Lead", mobile: "9888776655", email: "divya.menon@kavyafoodworks.in",
+      lead: { companyName: "Barka Fresh Foods LLC", industry: "FOOD", corporateSize: "51–200",
+        contactPerson: "Ghalia Al Riyami", designation: "HR Lead", mobile: "98887766", email: "ghalia.alriyami@barkafoods.om",
         leadSource: "Event", expectedEmployeeCount: 165, products: ["GMC"], createdDate: "2026-06-01", duplicateFlag: false },
-      opportunity: { name: "Kavya FoodWorks - GMC - 2026", salesOwnerId: "U-SE-01", expectedPremium: 1850000,
+      opportunity: { name: "Barka Fresh Foods - GMC - 2026", salesOwnerId: "U-SE-01", expectedPremium: 28000,
         expectedCloseDate: "2026-08-05", probability: 75, crmStage: "Negotiation", products: ["GMC"], notes: "", attachments: [] },
-      employer: { legalName: "Kavya FoodWorks Private Limited", tradeName: "Kavya FoodWorks", pan: "AABCK2211P",
-        gst: "29AABCK2211P1ZQ", industry: "FOOD", annualTurnover: 145000000, employeeCount: 165,
-        officeLocations: ["Bengaluru"], hrContact: "Divya Menon / divya.menon@kavyafoodworks.in / 9888776655",
-        financeContact: "Kirti Reddy / kirti.reddy@kavyafoodworks.in", payrollFrequency: "Monthly",
+      employer: { legalName: "Barka Fresh Foods LLC", tradeName: "Barka Fresh Foods", crNumber: "1156789",
+        vatin: "OM1100045678", industry: "FOOD", annualTurnover: 3200000, employeeCount: 165,
+        officeLocations: ["Barka"], hrContact: "Ghalia Al Riyami / ghalia.alriyami@barkafoods.om / 98887766",
+        financeContact: "Dina Al Kalbani / dina.alkalbani@barkafoods.om", payrollFrequency: "Monthly",
         previousInsurer: "", currentBroker: "" },
       policyReq: { products: ["GMC"], effectiveDate: asOf, duration: "12 months", policyType: "Fresh",
         employerContribution: "100% Employer-funded", splitPct: null, coverageBasis: "Family Floater" },
-      census: { fileName: "Kavya_FoodWorks_Census.xlsx", uploadedAt: "2026-06-20", rows },
+      census: { fileName: "Barka_Fresh_Foods_Census.xlsx", uploadedAt: "2026-06-20", rows },
       censusValidation: validateCensus(rows, asOf, 18, 79, false),
-      benefitGMC: { baseSumInsured: 300000, familyDefinition: "Employee, Spouse, 2 Children", roomRent: "Single Private AC",
+      benefitGMC: { baseSumInsured: 5000, familyDefinition: "Employee, Spouse, 2 Children", roomRent: "Single Private AC",
         copay: 0, deductible: 0, corporateBuffer: 0, maternity: true, pedWaived: false, dayCare: true, opd: true, dental: false, vision: false },
       benefitGTL: null, prevInsurance: null, underwriting: null,
       quotes: [], selectedQuoteId: "A", proposal: null, negotiation: null, approval: null, payment: null, issuance: null
@@ -525,50 +525,50 @@
       decision: "Approve", decisionBy: "U-UW-01", decisionDate: "2026-07-08", requestInfoNote: "", loadingPct: 0, comments: "Clean group, standard terms." };
     kase.quotes = quoteOptions(kase);
     const premium = kase.quotes.find(q => q.id === "A").premium;
-    const taxes = Math.round(premium * 0.18);
+    const taxes = Math.round(premium * 0.05);
     kase.proposal = { premium, taxes, brokerage: 0, discountPct: 0, discount: 0,
-      netPremium: premium + taxes, sentAt: "2026-07-12", sentTo: "Divya Menon (HR), no broker" };
+      netPremium: premium + taxes, sentAt: "2026-07-12", sentTo: "Ghalia Al Riyami (HR), no broker" };
     CASES.push(kase);
   }
 
-  /* 7 — Aarav Pharma Industries: Negotiation — discount requested, needs Business Head */
+  /* 8 — Nizwa Pharma & Healthcare: Negotiation — discount requested, needs Business Head, brokered by RMS */
   {
     const asOf = "2026-08-10";
-    const rows = genCensus(7701, 1420, { asOf, minAge: 22, maxAge: 59, withSalary: true, prefix: "APH-" });
+    const rows = genCensus(7701, 1420, { asOf, minAge: 22, maxAge: 59, withSalary: true, prefix: "NPH-" });
     const kase = {
       id: "EB-2026-0007", createdDate: "2026-05-05", stage: "Negotiation",
       salesExecutiveId: "U-SE-02", brokerId: "BRK-01",
-      lead: { companyName: "Aarav Pharma Industries Ltd", industry: "PHARMA", corporateSize: "1000+",
-        contactPerson: "Sanjay Reddy", designation: "CHRO", mobile: "9822334455", email: "sanjay.reddy@aaravpharma.in",
+      lead: { companyName: "Nizwa Pharma & Healthcare LLC", industry: "HEALTHCARE", corporateSize: "1000+",
+        contactPerson: "Sultan Al Abri", designation: "CHRO", mobile: "98223344", email: "sultan.alabri@nizwapharma.om",
         leadSource: "Broker", expectedEmployeeCount: 1420, products: ["GMC", "GTL"], createdDate: "2026-05-05", duplicateFlag: false },
-      opportunity: { name: "Aarav Pharma Industries - GMC/GTL - 2026", salesOwnerId: "U-SE-02", expectedPremium: 42000000,
+      opportunity: { name: "Nizwa Pharma & Healthcare - GMC/GTL - 2026", salesOwnerId: "U-SE-02", expectedPremium: 1100000,
         expectedCloseDate: "2026-08-30", probability: 70, crmStage: "Negotiation", products: ["GMC", "GTL"], notes: "", attachments: [] },
-      employer: { legalName: "Aarav Pharma Industries Limited", tradeName: "Aarav Pharma", pan: "AACCA7766Q",
-        gst: "24AACCA7766Q1Z1", industry: "PHARMA", annualTurnover: 2100000000, employeeCount: 1420,
-        officeLocations: ["Ahmedabad", "Vadodara", "Indore"], hrContact: "Sanjay Reddy / sanjay.reddy@aaravpharma.in / 9822334455",
-        financeContact: "Tanvi Iyer / tanvi.iyer@aaravpharma.in", payrollFrequency: "Monthly",
-        previousInsurer: "", currentBroker: "Trinity Insurance Brokers Pvt Ltd" },
+      employer: { legalName: "Nizwa Pharma & Healthcare LLC", tradeName: "Nizwa Pharma", crNumber: "1387654",
+        vatin: "OM1100088123", industry: "HEALTHCARE", annualTurnover: 85000000, employeeCount: 1420,
+        officeLocations: ["Nizwa (HO)", "Muscat", "Sohar"], hrContact: "Sultan Al Abri / sultan.alabri@nizwapharma.om / 98223344",
+        financeContact: "Asma Al Lawati / asma.allawati@nizwapharma.om", payrollFrequency: "Monthly",
+        previousInsurer: "", currentBroker: "RMS Insurance Brokers LLC" },
       policyReq: { products: ["GMC", "GTL"], effectiveDate: asOf, duration: "12 months", policyType: "Fresh",
         employerContribution: "100% Employer-funded", splitPct: null, coverageBasis: "Family Floater" },
-      census: { fileName: "Aarav_Pharma_Census_Final.xlsx", uploadedAt: "2026-06-15", rows },
+      census: { fileName: "Nizwa_Pharma_Census_Final.xlsx", uploadedAt: "2026-06-15", rows },
       censusValidation: validateCensus(rows, asOf, 18, 79, true),
-      benefitGMC: { baseSumInsured: 1000000, familyDefinition: "Employee, Spouse, 2 Children", roomRent: "Single Private AC",
-        copay: 0, deductible: 0, corporateBuffer: 5000000, maternity: true, pedWaived: true, dayCare: true, opd: true, dental: true, vision: false },
-      benefitGTL: { coverType: "Flat Cover", flatCover: 1500000, salaryMultiple: null, minimumCover: 1500000, maximumCover: 1500000,
+      benefitGMC: { baseSumInsured: 20000, familyDefinition: "Employee, Spouse, 2 Children", roomRent: "Single Private AC",
+        copay: 0, deductible: 0, corporateBuffer: 60000, maternity: true, pedWaived: true, dayCare: true, opd: true, dental: true, vision: false },
+      benefitGTL: { coverType: "Flat Cover", flatCover: 25000, salaryMultiple: null, minimumCover: 25000, maximumCover: 25000,
         terminalIllness: true, accidentalDeath: true, permanentDisability: true },
       prevInsurance: null, underwriting: null, quotes: [], selectedQuoteId: "A", proposal: null, approval: null, payment: null, issuance: null
     };
-    kase.underwriting = { riskScore: 29, industryRiskClass: industry("PHARMA").risk, fclBreachIds: [], medicalFlags: [],
+    kase.underwriting = { riskScore: 29, industryRiskClass: industry("HEALTHCARE").risk, fclBreachIds: [], medicalFlags: [],
       decision: "Approve", decisionBy: "U-UW-01", decisionDate: "2026-06-25", requestInfoNote: "", loadingPct: 0, comments: "Approved at standard terms." };
     kase.quotes = quoteOptions(kase);
     const premium = kase.quotes.find(q => q.id === "A").premium;
-    const taxes = Math.round(premium * 0.18);
+    const taxes = Math.round(premium * 0.05);
     kase.proposal = { premium, taxes, brokerage: Math.round(premium * 0.03), discountPct: 0, discount: 0,
-      netPremium: premium + taxes, sentAt: "2026-07-01", sentTo: "Sanjay Reddy (HR); Trinity Insurance Brokers" };
+      netPremium: premium + taxes, sentAt: "2026-07-01", sentTo: "Sultan Al Abri (HR); RMS Insurance Brokers" };
     kase.negotiation = {
       requests: [
         { type: "Discount Requested", detail: "HR has asked for a 7% discount citing a competing quote from another insurer.", date: "2026-07-08", by: "Corporate HR" },
-        { type: "Benefit Changes", detail: "Requested OPD sub-limit increase from ₹15,000 to ₹25,000 per employee.", date: "2026-07-08", by: "Corporate HR" }
+        { type: "Benefit Changes", detail: "Requested OPD sub-limit increase from OMR 300 to OMR 500 per employee.", date: "2026-07-08", by: "Corporate HR" }
       ],
       salesComments: "Employer is price-sensitive but committed if we can land close to 7%. Recommend routing for Business Head approval rather than losing the case.",
       uwComments: "Benefit change (OPD limit) does not move risk beyond approved parameters — no UW re-referral needed.",
@@ -577,28 +577,28 @@
     CASES.push(kase);
   }
 
-  /* 8 — Silverline Freight Corp: Approval Workflow — Finance pending */
+  /* 9 — Sur Maritime Freight: Approval Workflow — Finance pending */
   {
     const asOf = "2026-07-28";
-    const rows = genCensus(8801, 340, { asOf, minAge: 21, maxAge: 58, withSalary: false, prefix: "SLF-" });
+    const rows = genCensus(8801, 340, { asOf, minAge: 21, maxAge: 58, withSalary: false, prefix: "SMF-" });
     const kase = {
       id: "EB-2026-0008", createdDate: "2026-05-25", stage: "Negotiation",
       salesExecutiveId: "U-SE-01", brokerId: null,
-      lead: { companyName: "Silverline Freight Corp", industry: "LOGISTICS", corporateSize: "201–1000",
-        contactPerson: "Vivek Patel", designation: "HR Head", mobile: "9776655443", email: "vivek.patel@silverlinefreight.in",
+      lead: { companyName: "Sur Maritime Freight LLC", industry: "LOGISTICS", corporateSize: "201–1000",
+        contactPerson: "Adil Al Amri", designation: "HR Head", mobile: "97766554", email: "adil.alamri@surmaritime.om",
         leadSource: "Referral", expectedEmployeeCount: 340, products: ["GMC"], createdDate: "2026-05-25", duplicateFlag: false },
-      opportunity: { name: "Silverline Freight Corp - GMC - 2026", salesOwnerId: "U-SE-01", expectedPremium: 4100000,
+      opportunity: { name: "Sur Maritime Freight - GMC - 2026", salesOwnerId: "U-SE-01", expectedPremium: 68000,
         expectedCloseDate: "2026-08-01", probability: 85, crmStage: "Negotiation", products: ["GMC"], notes: "", attachments: [] },
-      employer: { legalName: "Silverline Freight Corporation Pvt Ltd", tradeName: "Silverline Freight", pan: "AACCS3322R",
-        gst: "27AACCS3322R1Z6", industry: "LOGISTICS", annualTurnover: 310000000, employeeCount: 340,
-        officeLocations: ["Mumbai", "Nashik"], hrContact: "Vivek Patel / vivek.patel@silverlinefreight.in / 9776655443",
-        financeContact: "Rekha Desai / rekha.desai@silverlinefreight.in", payrollFrequency: "Monthly",
+      employer: { legalName: "Sur Maritime Freight LLC", tradeName: "Sur Maritime Freight", crNumber: "1234567",
+        vatin: "OM1100023456", industry: "LOGISTICS", annualTurnover: 7800000, employeeCount: 340,
+        officeLocations: ["Sur", "Muscat"], hrContact: "Adil Al Amri / adil.alamri@surmaritime.om / 97766554",
+        financeContact: "Wafa Al Busaidi / wafa.albusaidi@surmaritime.om", payrollFrequency: "Monthly",
         previousInsurer: "", currentBroker: "" },
       policyReq: { products: ["GMC"], effectiveDate: asOf, duration: "12 months", policyType: "Fresh",
         employerContribution: "100% Employer-funded", splitPct: null, coverageBasis: "Family Floater" },
-      census: { fileName: "Silverline_Freight_Census.xlsx", uploadedAt: "2026-06-25", rows },
+      census: { fileName: "Sur_Maritime_Census.xlsx", uploadedAt: "2026-06-25", rows },
       censusValidation: validateCensus(rows, asOf, 18, 79, false),
-      benefitGMC: { baseSumInsured: 500000, familyDefinition: "Employee, Spouse, 2 Children", roomRent: "Twin Sharing",
+      benefitGMC: { baseSumInsured: 10000, familyDefinition: "Employee, Spouse, 2 Children", roomRent: "Twin Sharing",
         copay: 0, deductible: 0, corporateBuffer: 0, maternity: false, pedWaived: true, dayCare: true, opd: false, dental: false, vision: false },
       benefitGTL: null, prevInsurance: null, underwriting: null, quotes: [], selectedQuoteId: "A", proposal: null, negotiation: null, payment: null, issuance: null
     };
@@ -606,44 +606,44 @@
       decision: "Approve", decisionBy: "U-UW-01", decisionDate: "2026-06-30", requestInfoNote: "", loadingPct: 0, comments: "Green — fast-track eligible." };
     kase.quotes = quoteOptions(kase);
     const premium = kase.quotes.find(q => q.id === "A").premium;
-    const taxes = Math.round(premium * 0.18);
+    const taxes = Math.round(premium * 0.05);
     kase.proposal = { premium, taxes, brokerage: 0, discountPct: 0, discount: 0, netPremium: premium + taxes,
-      sentAt: "2026-07-03", sentTo: "Vivek Patel (HR)" };
+      sentAt: "2026-07-03", sentTo: "Adil Al Amri (HR)" };
     kase.negotiation = { requests: [], salesComments: "No changes requested — proceeding to approval as-is.", uwComments: "", financeComments: "", discountRequestedPct: 0, resubmitted: true };
     kase.approval = {
       steps: [
-        { role: "Sales Manager", status: "Approved", by: "Karan Malhotra", date: "2026-07-14", comment: "Standard Green case, approved." },
-        { role: "Underwriter", status: "Approved", by: "Priya Nair", date: "2026-07-15", comment: "Confirmed UW terms unchanged." },
+        { role: "Sales Manager", status: "Approved", by: "Nasser Al Rashdi", date: "2026-07-14", comment: "Standard Green case, approved." },
+        { role: "Underwriter", status: "Approved", by: "Mariam Al Hinai", date: "2026-07-15", comment: "Confirmed UW terms unchanged." },
         { role: "Finance", status: "Pending", by: null, date: null, comment: "" }
       ]
     };
     CASES.push(kase);
   }
 
-  /* 9 — Zenith Manufacturing: Policy Issued (closed) */
+  /* 10 — Rustaq Manufacturing Industries: Policy Issued (closed), brokered by Al Nahda */
   {
     const asOf = "2026-06-01";
-    const rows = genCensus(9901, 1240, { asOf, minAge: 21, maxAge: 59, withSalary: true, prefix: "ZEN-" });
+    const rows = genCensus(9901, 1240, { asOf, minAge: 21, maxAge: 59, withSalary: true, prefix: "RMI-" });
     const kase = {
       id: "EB-2026-0009", createdDate: "2026-04-02", stage: "Policy Issued",
-      salesExecutiveId: "U-SE-02", brokerId: "BRK-02",
-      lead: { companyName: "Zenith Manufacturing Ltd", industry: "MFG", corporateSize: "1000+",
-        contactPerson: "Amitabh Singh", designation: "CHRO", mobile: "9700112244", email: "amitabh.singh@zenithmfg.in",
+      salesExecutiveId: "U-SE-02", brokerId: "BRK-03",
+      lead: { companyName: "Rustaq Manufacturing Industries LLC", industry: "MFG", corporateSize: "1000+",
+        contactPerson: "Majid Al Busaidi", designation: "CHRO", mobile: "97001122", email: "majid.albusaidi@rustaqmfg.om",
         leadSource: "Broker", expectedEmployeeCount: 1240, products: ["GMC", "GTL"], createdDate: "2026-04-02", duplicateFlag: false },
-      opportunity: { name: "Zenith Manufacturing - GMC/GTL - 2026", salesOwnerId: "U-SE-02", expectedPremium: 23800000,
+      opportunity: { name: "Rustaq Manufacturing Industries - GMC/GTL - 2026", salesOwnerId: "U-SE-02", expectedPremium: 460000,
         expectedCloseDate: "2026-06-15", probability: 100, crmStage: "Closed Won", products: ["GMC", "GTL"], notes: "", attachments: [] },
-      employer: { legalName: "Zenith Manufacturing Limited", tradeName: "Zenith Manufacturing", pan: "AACCZ1100S",
-        gst: "24AACCZ1100S1Z9", industry: "MFG", annualTurnover: 3400000000, employeeCount: 1240,
-        officeLocations: ["Vadodara", "Halol"], hrContact: "Amitabh Singh / amitabh.singh@zenithmfg.in / 9700112244",
-        financeContact: "Nisha Kapoor / nisha.kapoor@zenithmfg.in", payrollFrequency: "Monthly",
-        previousInsurer: "", currentBroker: "Coastline Risk Advisors LLP" },
+      employer: { legalName: "Rustaq Manufacturing Industries LLC", tradeName: "Rustaq Manufacturing", crNumber: "1109988",
+        vatin: "OM1100011002", industry: "MFG", annualTurnover: 55000000, employeeCount: 1240,
+        officeLocations: ["Rustaq (HO)", "Sohar"], hrContact: "Majid Al Busaidi / majid.albusaidi@rustaqmfg.om / 97001122",
+        financeContact: "Zainab Al Riyami / zainab.alriyami@rustaqmfg.om", payrollFrequency: "Monthly",
+        previousInsurer: "", currentBroker: "Al Nahda Brokerage Services LLC" },
       policyReq: { products: ["GMC", "GTL"], effectiveDate: asOf, duration: "12 months", policyType: "Fresh",
         employerContribution: "100% Employer-funded", splitPct: null, coverageBasis: "Family Floater" },
-      census: { fileName: "Zenith_Manufacturing_Census.xlsx", uploadedAt: "2026-05-10", rows },
+      census: { fileName: "Rustaq_Manufacturing_Census.xlsx", uploadedAt: "2026-05-10", rows },
       censusValidation: validateCensus(rows, asOf, 18, 79, true),
-      benefitGMC: { baseSumInsured: 500000, familyDefinition: "Employee, Spouse, 2 Children", roomRent: "Twin Sharing",
-        copay: 0, deductible: 0, corporateBuffer: 3000000, maternity: true, pedWaived: true, dayCare: true, opd: false, dental: false, vision: false },
-      benefitGTL: { coverType: "Salary Multiple", flatCover: null, salaryMultiple: 2, minimumCover: 500000, maximumCover: 3000000,
+      benefitGMC: { baseSumInsured: 10000, familyDefinition: "Employee, Spouse, 2 Children", roomRent: "Twin Sharing",
+        copay: 0, deductible: 0, corporateBuffer: 30000, maternity: true, pedWaived: true, dayCare: true, opd: false, dental: false, vision: false },
+      benefitGTL: { coverType: "Salary Multiple", flatCover: null, salaryMultiple: 2, minimumCover: 10000, maximumCover: 60000,
         terminalIllness: true, accidentalDeath: true, permanentDisability: false },
       prevInsurance: null, underwriting: null, quotes: [], selectedQuoteId: "A", proposal: null, negotiation: null, payment: null, issuance: null
     };
@@ -651,25 +651,72 @@
       decision: "Approve", decisionBy: "U-UW-01", decisionDate: "2026-05-16", requestInfoNote: "", loadingPct: 0, comments: "Approved, standard terms." };
     kase.quotes = quoteOptions(kase);
     const premium = kase.quotes.find(q => q.id === "A").premium;
-    const taxes = Math.round(premium * 0.18);
+    const taxes = Math.round(premium * 0.05);
     kase.proposal = { premium, taxes, brokerage: Math.round(premium * 0.025), discountPct: 3, discount: Math.round(premium * 0.03),
-      netPremium: Math.round(premium * 0.97) + taxes, sentAt: "2026-05-20", sentTo: "Amitabh Singh (HR); Coastline Risk Advisors" };
+      netPremium: Math.round(premium * 0.97) + taxes, sentAt: "2026-05-20", sentTo: "Majid Al Busaidi (HR); Al Nahda Brokerage Services" };
     kase.negotiation = { requests: [{ type: "Discount Requested", detail: "3% loyalty discount requested for multi-year relationship.", date: "2026-05-22", by: "Corporate HR" }],
       salesComments: "Long-standing relationship; discount within Sales Manager delegated authority.", uwComments: "", financeComments: "Approved — within margin.", discountRequestedPct: 3, resubmitted: true };
     kase.approval = { steps: [
-      { role: "Sales Manager", status: "Approved", by: "Karan Malhotra", date: "2026-05-24", comment: "Within delegated authority." },
-      { role: "Underwriter", status: "Approved", by: "Priya Nair", date: "2026-05-25", comment: "No change to risk." },
-      { role: "Finance", status: "Approved", by: "Sunita Agarwal", date: "2026-05-26", comment: "Reconciled against target margin." }
+      { role: "Sales Manager", status: "Approved", by: "Nasser Al Rashdi", date: "2026-05-24", comment: "Within delegated authority." },
+      { role: "Underwriter", status: "Approved", by: "Mariam Al Hinai", date: "2026-05-25", comment: "No change to risk." },
+      { role: "Finance", status: "Approved", by: "Layla Al Zadjali", date: "2026-05-26", comment: "Reconciled against target margin." }
     ] };
     const total = kase.proposal.netPremium;
-    kase.payment = { invoiceNo: "INV-2026-0091", premium: kase.proposal.netPremium - Math.round(kase.proposal.netPremium * 0.18 / 1.18),
-      gst: Math.round(kase.proposal.netPremium * 0.18 / 1.18), total, mode: "NEFT", txnNumber: "NEFT2026052900231",
-      proofFile: "Zenith_Payment_Proof.pdf", status: "Received", submittedAt: "2026-05-29", reconciledAt: "2026-05-30" };
-    kase.issuance = { policyNumber: "PA/EB/2026/004120", startDate: asOf, endDate: "2027-05-31", products: ["GMC", "GTL"],
+    kase.payment = { invoiceNo: "INV-2026-0091", premium: kase.proposal.netPremium - Math.round(kase.proposal.netPremium * 0.05 / 1.05),
+      gst: Math.round(kase.proposal.netPremium * 0.05 / 1.05), total, mode: "Bank Transfer", txnNumber: "BT2026052900231",
+      proofFile: "Rustaq_Payment_Proof.pdf", status: "Received", submittedAt: "2026-05-29", reconciledAt: "2026-05-30" };
+    kase.issuance = { policyNumber: "AFA/EB/2026/004120", startDate: asOf, endDate: "2027-05-31", products: ["GMC", "GTL"],
       premium: kase.proposal.netPremium, livesCovered: kase.censusValidation.accepted, issuedAt: "2026-06-01",
       documents: ["Policy Schedule", "Tax Invoice", "Employee Certificates (bulk)"], welcomeKitSent: true, finished: true };
     CASES.push(kase);
   }
+
+  /* 11 — Marina Heights Construction (UAE): Employer Profile Completed, brokered by RMS's Dubai office.
+     Demonstrates the UAE identity format (Trade License / VAT TRN) and AED currency. */
+  CASES.push({
+    id: "EB-2026-0011", createdDate: "2026-07-08", stage: "Employer Profile Completed",
+    salesExecutiveId: "U-SE-01", brokerId: "BRK-01", geography: "UAE", currency: "AED",
+    lead: {
+      companyName: "Marina Heights Construction LLC", industry: "CONSTR", corporateSize: "201–1000",
+      contactPerson: "Khalid Al Mazrouei", designation: "HR Director", mobile: "501234567", email: "khalid.almazrouei@marinaheights.ae",
+      leadSource: "Broker", expectedEmployeeCount: 380, products: ["GMC", "GTL"], createdDate: "2026-07-08", duplicateFlag: false
+    },
+    opportunity: {
+      name: "Marina Heights Construction - GMC/GTL - 2026", salesOwnerId: "U-SE-01", expectedPremium: 980000,
+      expectedCloseDate: "2026-09-20", probability: 45, crmStage: "Qualification", products: ["GMC", "GTL"],
+      notes: "Introduced by RMS Insurance Brokers — Dubai office. Site-based construction workforce; DEWA-compliant medical network requested.",
+      attachments: []
+    },
+    employer: {
+      legalName: "Marina Heights Construction LLC", tradeName: "Marina Heights Construction", tradeLicense: "DED-784512",
+      vatTrn: "100234567800003", industry: "CONSTR", annualTurnover: 42000000, employeeCount: 380,
+      officeLocations: ["Dubai (HO)", "Abu Dhabi", "Sharjah"], hrContact: "Khalid Al Mazrouei / khalid.almazrouei@marinaheights.ae / +971 50 123 4567",
+      financeContact: "Noor Al Falasi / noor.alfalasi@marinaheights.ae", payrollFrequency: "Monthly",
+      previousInsurer: "", currentBroker: "RMS Insurance Brokers LLC"
+    },
+    policyReq: null, census: null, censusValidation: null, benefitGMC: null, benefitGTL: null, prevInsurance: null,
+    underwriting: null, quotes: [], selectedQuoteId: null, proposal: null, negotiation: null, approval: null, payment: null, issuance: null
+  });
+
+  /* 12 — Lusail Energy Solutions (Qatar): Opportunity Created, brokered by RMS's Doha office.
+     Demonstrates the Qatar identity format (CR / Tax Card, no VAT under the GCC framework yet) and QAR currency. */
+  CASES.push({
+    id: "EB-2026-0012", createdDate: "2026-07-12", stage: "Opportunity Created",
+    salesExecutiveId: "U-SE-02", brokerId: "BRK-01", geography: "Qatar", currency: "QAR",
+    lead: {
+      companyName: "Lusail Energy Solutions WLL", industry: "ENERGY", corporateSize: "1000+",
+      contactPerson: "Fahad Al Kaabi", designation: "Head of Human Capital", mobile: "55123456", email: "fahad.alkaabi@lusailenergy.qa",
+      leadSource: "Broker", expectedEmployeeCount: 1100, products: ["GMC", "GTL"], createdDate: "2026-07-12", duplicateFlag: false
+    },
+    opportunity: {
+      name: "Lusail Energy Solutions - GMC/GTL - 2026", salesOwnerId: "U-SE-02", expectedPremium: 4800000,
+      expectedCloseDate: "2026-10-01", probability: 55, crmStage: "Needs Analysis", products: ["GMC", "GTL"],
+      notes: "Introduced by RMS Insurance Brokers — Doha office. LNG/gas sector workforce; expatriate-heavy census expected, high FCL exposure likely for GTL.",
+      attachments: []
+    },
+    employer: null, policyReq: null, census: null, censusValidation: null, benefitGMC: null, benefitGTL: null, prevInsurance: null,
+    underwriting: null, quotes: [], selectedQuoteId: null, proposal: null, negotiation: null, approval: null, payment: null, issuance: null
+  });
 
   /* ---------- notifications derived from seed state (Notification Matrix, Section 7) ---------- */
   CASES.forEach(k => {
@@ -692,11 +739,12 @@
     if (k.payment && k.payment.status === "Received") pushNotif(k, "Payment received", "ok", `Payment received and reconciled — <strong>${k.lead.companyName}</strong>`, `#/case/${k.id}/payment`);
     if (k.issuance) pushNotif(k, "Policy issued", "ok", `Policy <strong>${k.issuance.policyNumber}</strong> issued — ${k.lead.companyName}`, `#/case/${k.id}/issuance`);
   });
+
   /* ---------- in-force book nearing renewal (dashboard Screen 1 widget; renewal journey itself is out of scope) ---------- */
   const RENEWALS = [
-    { company: "Trident Hospitality Group", product: "GMC", premium: 6800000, expiry: addDays(TODAY, 42), owner: "U-SE-01" },
-    { company: "Orion Data Systems Pvt Ltd", product: "GMC + GTL", premium: 11400000, expiry: addDays(TODAY, 68), owner: "U-SE-02" },
-    { company: "Falcon Steel Industries", product: "GTL", premium: 3150000, expiry: addDays(TODAY, 84), owner: "U-SE-01" }
+    { company: "Muttrah Hospitality Group", product: "GMC", premium: 62000, expiry: addDays(TODAY, 42), owner: "U-SE-01" },
+    { company: "Seeb Data Systems LLC", product: "GMC + GTL", premium: 98000, expiry: addDays(TODAY, 68), owner: "U-SE-02" },
+    { company: "Ibra Steel Industries LLC", product: "GTL", premium: 27000, expiry: addDays(TODAY, 84), owner: "U-SE-01" }
   ];
   RENEWALS.forEach(r => pushNotif(null, "Renewal due within 90 days", "warn", `<strong>${r.company}</strong> ${r.product} policy renews in ${daysBetween(TODAY, r.expiry)} days`, "#/dashboard"));
   function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }

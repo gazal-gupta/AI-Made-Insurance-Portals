@@ -29,8 +29,8 @@
   /* ---------- Screen 1: Sales Dashboard ---------- */
   VIEWS.dashboard = function () {
     const open = DB.CASES.filter(c => !(c.issuance && c.issuance.finished));
-    const inrOpen = open.filter(c => U.currencyOf(c) === "INR");
-    const pipelineValue = inrOpen.reduce((s, c) => s + (c.proposal ? c.proposal.netPremium : (c.opportunity ? c.opportunity.expectedPremium : 0)), 0);
+    const omrOpen = open.filter(c => U.currencyOf(c) === "OMR");
+    const pipelineValue = omrOpen.reduce((s, c) => s + (c.proposal ? c.proposal.netPremium : (c.opportunity ? c.opportunity.expectedPremium : 0)), 0);
     const tasks = J.deriveTasks();
     const myTasks = tasks.filter(t => t.ownerId === DB.CURRENT_USER.id);
     const uwCount = DB.CASES.filter(c => J.currentStepKey(c) === "underwriting" && !J.isDone(c, "underwriting")).length;
@@ -50,7 +50,7 @@
     </div>
 
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-label">Open Pipeline (India book)</div><div class="kpi-row"><div class="kpi-value">${U.fmtCr(pipelineValue)}</div></div><div class="kpi-note">${inrOpen.length} open cases, ₹</div></div>
+      <div class="kpi"><div class="kpi-label">Open Pipeline (OMR book)</div><div class="kpi-row"><div class="kpi-value">${U.fmtOMR(pipelineValue)}</div></div><div class="kpi-note">${omrOpen.length} open cases</div></div>
       <div class="kpi"><div class="kpi-label">Open Opportunities</div><div class="kpi-row"><div class="kpi-value">${open.length}</div></div><div class="kpi-note">across ${DB.CASES.length} total cases</div></div>
       <div class="kpi"><div class="kpi-label">Awaiting My Action</div><div class="kpi-row"><div class="kpi-value">${myTasks.filter(t => t.actionable).length}</div></div><div class="kpi-note">of ${myTasks.length} tracked tasks</div></div>
       <div class="kpi"><div class="kpi-label">In Underwriting</div><div class="kpi-row"><div class="kpi-value">${uwCount}</div></div><div class="kpi-note"><a data-href="#/underwriting-queue" style="cursor:pointer;color:var(--ink-2)">view queue →</a></div></div>
@@ -119,7 +119,13 @@
       <div class="field"><label>Corporate Size <span style="color:var(--red)">*</span></label><select class="select" name="corporateSize">${sizeOpts}</select></div>
       <div class="field"><label>Contact Person <span style="color:var(--red)">*</span></label><input class="input" name="contactPerson" required></div>
       <div class="field"><label>Designation <span style="color:var(--red)">*</span></label><input class="input" name="designation" required></div>
-      <div class="field"><label>Mobile <span style="color:var(--red)">*</span></label><input class="input" name="mobile" placeholder="10-digit" maxlength="10"></div>
+      <div class="field"><label>Geography <span style="color:var(--red)">*</span></label>
+        <select class="select" name="geography">
+          <option value="Oman" selected>Oman</option>
+          <option value="UAE">UAE</option>
+          <option value="Qatar">Qatar</option>
+        </select></div>
+      <div class="field"><label>Mobile <span style="color:var(--red)">*</span></label><input class="input" name="mobile" placeholder="e.g. 91234567" maxlength="9"></div>
       <div class="field"><label>Email <span style="color:var(--red)">*</span></label><input class="input" name="email" type="email"></div>
       <div class="field"><label>Broker</label><select class="select" name="brokerId">${brokerOpts}</select></div>
       <div class="field"><label>Lead Source <span style="color:var(--red)">*</span></label><select class="select" name="leadSource">
@@ -138,15 +144,20 @@
       `<button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-amber" data-action="submit-new-lead">Save Lead</button>`);
   };
 
+  const GEO_MOBILE_DIGITS = { Oman: 8, UAE: 9, Qatar: 8 };
+  const GEO_CURRENCY = { Oman: "OMR", UAE: "AED", Qatar: "QAR" };
+
   ACTIONS["submit-new-lead"] = function () {
     const form = document.getElementById("leadForm");
     const fd = new FormData(form);
     const companyName = (fd.get("companyName") || "").trim();
     const mobile = (fd.get("mobile") || "").trim();
+    const geography = fd.get("geography") || "Oman";
+    const mobileDigits = GEO_MOBILE_DIGITS[geography] || 8;
     const products = fd.getAll("products");
     const errors = [];
     if (companyName.length < 3) errors.push("Company Name must be at least 3 characters.");
-    if (!/^\d{10}$/.test(mobile)) errors.push("Mobile must be a 10-digit number.");
+    if (!(new RegExp(`^\\d{${mobileDigits}}$`)).test(mobile)) errors.push(`Mobile must be a ${mobileDigits}-digit number for ${geography}.`);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fd.get("email") || "")) errors.push("Email format is invalid.");
     if (!fd.get("contactPerson")) errors.push("Contact Person is required.");
     if (!fd.get("designation")) errors.push("Designation is required.");
@@ -158,7 +169,7 @@
     const id = "EB-2026-0" + (100 + DB.CASES.length);
     const kase = {
       id, createdDate: DB.TODAY, stage: "Lead", salesExecutiveId: DB.CURRENT_USER.id,
-      brokerId: fd.get("brokerId") || null,
+      brokerId: fd.get("brokerId") || null, geography, currency: GEO_CURRENCY[geography] || "OMR",
       lead: {
         companyName, industry: fd.get("industry"), corporateSize: fd.get("corporateSize"),
         contactPerson: fd.get("contactPerson"), designation: fd.get("designation"), mobile, email: fd.get("email"),
@@ -241,7 +252,7 @@
         <div class="field-row"><label>Sales Owner <span class="req">*</span></label>
           <select class="select" name="salesOwnerId">${DB.SALES_EXECS.filter(u => u.role === "Sales Executive").map(u => `<option value="${u.id}" ${((o ? o.salesOwnerId : kase.salesExecutiveId) === u.id) ? "selected" : ""}>${U.esc(u.name)}</option>`).join("")}</select>
           <div class="hint">Defaults to logged-in user; reassignable by Sales Manager.</div></div>
-        <div class="field-row"><label>Expected Premium (₹) <span class="req">*</span></label>
+        <div class="field-row"><label>Expected Premium (${U.currencyOf(kase)}) <span class="req">*</span></label>
           <input class="input" name="expectedPremium" type="number" min="1" value="${o ? o.expectedPremium : ""}"></div>
         <div class="field-row"><label>Expected Close Date <span class="req">*</span></label>
           <input class="input" name="expectedCloseDate" type="date" min="${DB.TODAY}" value="${o ? o.expectedCloseDate : ""}"></div>

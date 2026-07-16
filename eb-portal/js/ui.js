@@ -6,9 +6,13 @@ window.ACTIONS = window.ACTIONS || {};
 (function () {
   const DAY = 86400000;
 
-  /* ---------- formatting (India-first: INR) ---------- */
+  /* ---------- formatting — Oman/OMR is the default, active geography.
+     India/INR formatting is kept fully working (not deleted) for any case that
+     explicitly sets geography:"India"/currency:"INR" — it's just not the default
+     any seed data uses, so it stays hidden from the UI rather than removed. ---------- */
   const inr0 = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
-  const num0 = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
+  const num0 = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
+  const omrFull = new Intl.NumberFormat("en-OM", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
   function fmtINR(n) { return n == null ? "—" : inr0.format(Math.round(n)); }
   function fmtNum(n) { return n == null ? "—" : num0.format(n); }
@@ -19,22 +23,48 @@ window.ACTIONS = window.ACTIONS || {};
     if (abs >= 100000) return "₹" + (n / 100000).toFixed(abs % 100000 === 0 ? 0 : 1).replace(/\.?0+$/, "") + "L";
     return fmtINR(n);
   }
-  const omr3 = new Intl.NumberFormat("en-OM", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-  function currencyOf(k) { return (k && k.currency) || "INR"; }
-  function geographyOf(k) { return (k && k.geography) || "India"; }
-  function fmtMoney(n, currency) {
-    currency = currency || "INR";
+  function fmtOMR(n) {
     if (n == null) return "—";
-    if (currency === "OMR") return "OMR " + omr3.format(n);
-    return fmtCr(n);
+    const abs = Math.abs(n);
+    if (abs >= 1000000) return "OMR " + (n / 1000000).toFixed(abs % 1000000 === 0 ? 0 : 2).replace(/\.?0+$/, "") + "M";
+    return "OMR " + Math.round(n).toLocaleString("en-OM");
+  }
+  function fmtOMRFull(n) { return n == null ? "—" : "OMR " + omrFull.format(n); }
+
+  /* RMS operates across Oman, UAE and Qatar — AED/QAR are live currencies too,
+     not just OMR; India stays supported but hidden unless a case opts into it. */
+  const aedFull = new Intl.NumberFormat("en-AE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const qarFull = new Intl.NumberFormat("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function fmtCompact(n, symbol, locale) {
+    if (n == null) return "—";
+    const abs = Math.abs(n);
+    if (abs >= 1000000) return symbol + " " + (n / 1000000).toFixed(abs % 1000000 === 0 ? 0 : 2).replace(/\.?0+$/, "") + "M";
+    return symbol + " " + Math.round(n).toLocaleString(locale);
+  }
+  function fmtAED(n) { return fmtCompact(n, "AED", "en-AE"); }
+  function fmtAEDFull(n) { return n == null ? "—" : "AED " + aedFull.format(n); }
+  function fmtQAR(n) { return fmtCompact(n, "QAR", "en-QA"); }
+  function fmtQARFull(n) { return n == null ? "—" : "QAR " + qarFull.format(n); }
+
+  function currencyOf(k) { return (k && k.currency) || "OMR"; }
+  function geographyOf(k) { return (k && k.geography) || "Oman"; }
+  function fmtMoney(n, currency) {
+    currency = currency || "OMR";
+    if (n == null) return "—";
+    if (currency === "INR") return fmtCr(n);
+    if (currency === "AED") return fmtAED(n);
+    if (currency === "QAR") return fmtQAR(n);
+    return fmtOMR(n);
   }
   function fmtMoneyFull(n, currency) {
-    currency = currency || "INR";
+    currency = currency || "OMR";
     if (n == null) return "—";
-    if (currency === "OMR") return "OMR " + omr3.format(n);
-    return fmtINR(n);
+    if (currency === "INR") return fmtINR(n);
+    if (currency === "AED") return fmtAEDFull(n);
+    if (currency === "QAR") return fmtQARFull(n);
+    return fmtOMRFull(n);
   }
-  function fmtDate(d) { return d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"; }
+  function fmtDate(d) { return d ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"; }
   function daysUntil(d) { return Math.round((new Date(d).setHours(0, 0, 0, 0) - new Date(DB.TODAY).setHours(0, 0, 0, 0)) / DAY); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
@@ -111,7 +141,7 @@ window.ACTIONS = window.ACTIONS || {};
   }
 
   window.UI = {
-    fmtINR, fmtNum, fmtCr, fmtMoney, fmtMoneyFull, currencyOf, geographyOf, fmtDate, daysUntil, dueLabel, esc,
+    fmtINR, fmtNum, fmtCr, fmtOMR, fmtOMRFull, fmtAED, fmtAEDFull, fmtQAR, fmtQARFull, fmtMoney, fmtMoneyFull, currencyOf, geographyOf, fmtDate, daysUntil, dueLabel, esc,
     kase, salesExec, broker, underwriter, initials, companyOf, productsOf,
     pill, trafficChip, toast, openModal, closeModal, exportCSV, downloadStub
   };

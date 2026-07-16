@@ -7,9 +7,39 @@
   window.SCREENS = window.SCREENS || {};
 
   /* ---------- Screen 4: Employer Profile ---------- */
+  /* Identity fields are parameterised per geography (FRD §1.4). Oman is the default,
+     active market; India/UAE/Qatar stay fully functional but only render when a case
+     explicitly sets that geography — hidden from the default UI, not removed. */
+  function identityFieldsHtml(geo, e) {
+    if (geo === "India") return `
+        <div class="field-row"><label>PAN <span class="req">*</span></label>
+          <input class="input" name="pan" placeholder="AAAAA9999A" maxlength="10" value="${U.esc(e ? e.pan : "")}">
+          <div class="hint">5 letters, 4 digits, 1 letter. Format-validated only in this release (NSDL verification is Phase 2).</div></div>
+        <div class="field-row"><label>GST <span class="opt">optional</span></label>
+          <input class="input" name="gst" placeholder="15-character GSTIN" maxlength="15" value="${U.esc(e ? e.gst : "")}"></div>`;
+    if (geo === "UAE") return `
+        <div class="field-row"><label>Trade License Number <span class="req">*</span></label>
+          <input class="input" name="tradeLicense" value="${U.esc(e ? e.tradeLicense : "")}">
+          <div class="hint">Geography: UAE — identity format parameterised per FRD §1.4 (PAN/GST substituted with Trade License/VAT TRN).</div></div>
+        <div class="field-row"><label>VAT TRN <span class="opt">optional</span></label>
+          <input class="input" name="vatTrn" placeholder="100xxxxxxxxxxxx" value="${U.esc(e ? e.vatTrn : "")}"></div>`;
+    if (geo === "Qatar") return `
+        <div class="field-row"><label>Commercial Registration (CR) Number <span class="req">*</span></label>
+          <input class="input" name="crNumberQatar" value="${U.esc(e ? e.crNumberQatar : "")}">
+          <div class="hint">Geography: Qatar — identity format parameterised per FRD §1.4 (PAN/GST substituted with CR/Tax Card). Qatar has not yet implemented VAT under the GCC framework.</div></div>
+        <div class="field-row"><label>Tax Card Number <span class="opt">optional</span></label>
+          <input class="input" name="taxCard" placeholder="GTA-xxxxxxx" value="${U.esc(e ? e.taxCard : "")}"></div>`;
+    return `
+        <div class="field-row"><label>Commercial Registration (CR) Number <span class="req">*</span></label>
+          <input class="input" name="crNumber" value="${U.esc(e ? e.crNumber : "")}">
+          <div class="hint">Geography: Oman — identity format parameterised per FRD §1.4 (PAN/GST substituted with CR/VATIN).</div></div>
+        <div class="field-row"><label>VATIN <span class="opt">optional</span></label>
+          <input class="input" name="vatin" placeholder="OM1xxxxxxxxxxx" value="${U.esc(e ? e.vatin : "")}"></div>`;
+  }
+
   SCREENS["employer"] = function (kase) {
     const e = kase.employer;
-    const isIndia = U.geographyOf(kase) === "India";
+    const geo = U.geographyOf(kase);
     const industryOpts = DB.INDUSTRIES.map(i => `<option value="${i.code}" ${(e ? e.industry : kase.lead.industry) === i.code ? "selected" : ""}>${U.esc(i.label)}</option>`).join("");
     const brokerDefault = kase.brokerId ? U.broker(kase.brokerId).name : "";
 
@@ -25,19 +55,7 @@
           <input class="input" name="legalName" value="${U.esc(e ? e.legalName : kase.lead.companyName)}"></div>
         <div class="field-row"><label>Trade Name <span class="opt">optional — defaults to Legal Name</span></label>
           <input class="input" name="tradeName" value="${U.esc(e ? e.tradeName : "")}"></div>
-        ${isIndia ? `
-        <div class="field-row"><label>PAN <span class="req">*</span></label>
-          <input class="input" name="pan" placeholder="AAAAA9999A" maxlength="10" value="${U.esc(e ? e.pan : "")}">
-          <div class="hint">5 letters, 4 digits, 1 letter. Format-validated only in this release (NSDL verification is Phase 2).</div></div>
-        <div class="field-row"><label>GST <span class="opt">optional</span></label>
-          <input class="input" name="gst" placeholder="15-character GSTIN" maxlength="15" value="${U.esc(e ? e.gst : "")}"></div>
-        ` : `
-        <div class="field-row"><label>Commercial Registration (CR) Number <span class="req">*</span></label>
-          <input class="input" name="crNumber" value="${U.esc(e ? e.crNumber : "")}">
-          <div class="hint">Geography: Oman — identity format parameterised per FRD §1.4 (PAN/GST substituted with CR/VATIN).</div></div>
-        <div class="field-row"><label>VATIN <span class="opt">optional</span></label>
-          <input class="input" name="vatin" placeholder="OM1xxxxxxxxxxx" value="${U.esc(e ? e.vatin : "")}"></div>
-        `}
+        ${identityFieldsHtml(geo, e)}
         <div class="field-row"><label>Industry <span class="req">*</span></label><select class="select" name="industry">${industryOpts}</select></div>
         <div class="field-row"><label>Annual Turnover <span class="opt">optional</span></label>
           <input class="input" name="annualTurnover" type="number" min="0" value="${e ? e.annualTurnover : ""}"></div>
@@ -68,12 +86,19 @@
   ACTIONS["save-employer"] = function (d) {
     const kase = U.kase(d.case);
     const fd = new FormData(document.getElementById("screenForm"));
-    const isIndia = U.geographyOf(kase) === "India";
+    const geo = U.geographyOf(kase);
     const errors = [];
     if (!fd.get("legalName")) errors.push("Legal Name is required.");
-    if (isIndia && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test((fd.get("pan") || "").toUpperCase())) errors.push("PAN must match format AAAAA9999A.");
-    if (isIndia && fd.get("gst") && fd.get("gst").length !== 15) errors.push("GSTIN must be 15 characters.");
-    if (!isIndia && !fd.get("crNumber")) errors.push("Commercial Registration (CR) Number is required.");
+    if (geo === "India") {
+      if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test((fd.get("pan") || "").toUpperCase())) errors.push("PAN must match format AAAAA9999A.");
+      if (fd.get("gst") && fd.get("gst").length !== 15) errors.push("GSTIN must be 15 characters.");
+    } else if (geo === "UAE") {
+      if (!fd.get("tradeLicense")) errors.push("Trade License Number is required.");
+    } else if (geo === "Qatar") {
+      if (!fd.get("crNumberQatar")) errors.push("Commercial Registration (CR) Number is required.");
+    } else {
+      if (!fd.get("crNumber")) errors.push("Commercial Registration (CR) Number is required.");
+    }
     if (!(Number(fd.get("employeeCount")) > 0)) errors.push("Employee Count must be greater than 0.");
     const locations = (fd.get("officeLocations") || "").split("\n").map(s => s.trim()).filter(Boolean);
     if (locations.length === 0) errors.push("At least one Office Location is required.");
@@ -82,8 +107,10 @@
 
     kase.employer = {
       legalName: fd.get("legalName"), tradeName: fd.get("tradeName") || fd.get("legalName"),
-      pan: isIndia ? (fd.get("pan") || "").toUpperCase() : undefined, gst: isIndia ? fd.get("gst") : undefined,
-      crNumber: !isIndia ? fd.get("crNumber") : undefined, vatin: !isIndia ? fd.get("vatin") : undefined,
+      pan: geo === "India" ? (fd.get("pan") || "").toUpperCase() : undefined, gst: geo === "India" ? fd.get("gst") : undefined,
+      crNumber: geo === "Oman" ? fd.get("crNumber") : undefined, vatin: geo === "Oman" ? fd.get("vatin") : undefined,
+      tradeLicense: geo === "UAE" ? fd.get("tradeLicense") : undefined, vatTrn: geo === "UAE" ? fd.get("vatTrn") : undefined,
+      crNumberQatar: geo === "Qatar" ? fd.get("crNumberQatar") : undefined, taxCard: geo === "Qatar" ? fd.get("taxCard") : undefined,
       industry: fd.get("industry"), annualTurnover: Number(fd.get("annualTurnover")) || null,
       employeeCount: Number(fd.get("employeeCount")), officeLocations: locations,
       hrContact: fd.get("hrContact"), financeContact: fd.get("financeContact") || "",

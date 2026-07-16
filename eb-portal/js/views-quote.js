@@ -52,7 +52,11 @@
     const kase = U.kase(d.case);
     const q = kase.quotes.find(x => x.id === kase.selectedQuoteId);
     const cur = U.currencyOf(kase);
-    const taxRate = cur === "OMR" ? 0.05 : 0.18;
+    // VAT is 5% in Oman and the UAE; Qatar has not yet implemented VAT under the GCC
+    // framework, so it rates at 0%. India's GST (18%, dormant/hidden by default) still
+    // applies for any case that explicitly opts into geography:"India".
+    const TAX_RATES = { OMR: 0.05, AED: 0.05, QAR: 0, INR: 0.18 };
+    const taxRate = TAX_RATES[cur] != null ? TAX_RATES[cur] : 0.05;
     const taxes = Math.round(q.premium * taxRate);
     kase.proposal = {
       premium: q.premium, taxes, brokerage: kase.brokerId ? Math.round(q.premium * 0.025) : 0,
@@ -77,7 +81,7 @@
       <div class="stack">
         <form id="screenForm">
           <div class="screen-grid">
-            <div class="field-row"><label>Brokerage <span class="opt">₹ — applies if a Broker is associated</span></label>
+            <div class="field-row"><label>Brokerage <span class="opt">${cur} — applies if a Broker is associated</span></label>
               <input class="input" name="brokerage" type="number" min="0" value="${p.brokerage}" ${!kase.brokerId ? "readonly" : ""}></div>
             <div class="field-row"><label>Discount (%) <span class="opt">requires approval if &gt; 0%</span></label>
               <input class="input" name="discountPct" type="number" min="0" max="30" value="${p.discountPct}"></div>
@@ -145,6 +149,7 @@
   SCREENS["negotiation"] = function (kase) {
     if (!kase.negotiation) kase.negotiation = { requests: [], salesComments: "", uwComments: "", financeComments: "", discountRequestedPct: kase.proposal.discountPct, resubmitted: false };
     const n = kase.negotiation;
+    const cur = U.currencyOf(kase);
     const role = DB.CURRENT_USER.role;
     const canEditUW = role === "Underwriter" || role === "Senior Underwriter";
     const canEditFin = role === "Finance";
@@ -156,12 +161,12 @@
     </div>
     <form id="screenForm">
       <div class="screen-grid">
-        <div class="field-row"><label>Increase Sum Insured <span class="opt">optional, ₹ — triggers premium recalculation</span></label>
+        <div class="field-row"><label>Increase Sum Insured <span class="opt">optional, ${cur} — triggers premium recalculation</span></label>
           <input class="input" name="increaseSI" type="number" min="0"></div>
         <div class="field-row"><label>Discount Requested (%) <span class="opt">routed per Approval Matrix based on magnitude</span></label>
           <input class="input" name="discountRequestedPct" type="number" min="0" max="30" value="${n.discountRequestedPct}"></div>
         <div class="field-row full"><label>Benefit Changes <span class="opt">optional — free-form or structured change request</span></label>
-          <textarea class="input" name="benefitChanges" placeholder="e.g. Increase OPD sub-limit from ₹15,000 to ₹25,000 per employee"></textarea></div>
+          <textarea class="input" name="benefitChanges" placeholder="e.g. Increase OPD sub-limit from ${cur} 300 to ${cur} 500 per employee"></textarea></div>
         <div class="field-row full"><label class="toggle-row" style="text-transform:none;font-size:12.5px;font-weight:600;color:var(--ink);">
           <input type="checkbox" id="riskImpact"> This request moves Sum Insured, Cover, or Benefits beyond the originally approved Underwriting parameters</label>
           <div class="hint">If checked, Resubmit will automatically re-trigger Underwriting review (Screen 11) before the quote can be regenerated.</div></div>
@@ -190,7 +195,7 @@
     const requests = (kase.negotiation && kase.negotiation.requests) || [];
     if (discountRequestedPct > 0) requests.push({ type: "Discount Requested", detail: `Employer requested ${discountRequestedPct}% discount.`, date: DB.TODAY, by: "Corporate HR" });
     if (benefitChanges) requests.push({ type: "Benefit Changes", detail: benefitChanges, date: DB.TODAY, by: "Corporate HR" });
-    if (Number(fd.get("increaseSI")) > 0) requests.push({ type: "Increase Sum Insured", detail: `Requested increase of ${U.fmtINR(Number(fd.get("increaseSI")))}.`, date: DB.TODAY, by: "Corporate HR" });
+    if (Number(fd.get("increaseSI")) > 0) requests.push({ type: "Increase Sum Insured", detail: `Requested increase of ${U.fmtMoneyFull(Number(fd.get("increaseSI")), U.currencyOf(kase))}.`, date: DB.TODAY, by: "Corporate HR" });
 
     kase.negotiation = {
       requests, salesComments: fd.get("salesComments") || "", uwComments: fd.get("uwComments") || "",

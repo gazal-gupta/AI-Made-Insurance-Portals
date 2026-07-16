@@ -17,14 +17,21 @@
     const maxAge = Math.max(1, ...Object.values(ageDist));
     const lr = DB.calc.lossRatio(kase.prevInsurance);
     const hasSalary = kase.censusValidation && kase.censusValidation.rows.some(r => r.salary);
+    const cur = U.currencyOf(kase);
     let salaryBars = "";
     if (hasSalary) {
-      const buckets = { "< ₹5L": 0, "₹5–10L": 0, "₹10–20L": 0, "₹20L+": 0 };
+      // salary bands scale with the case's currency: India runs INR-lakh scale (dormant,
+      // hidden by default), Gulf currencies (OMR/AED/QAR) run a thousands scale
+      const isINR = cur === "INR";
+      const t1 = isINR ? 500000 : 5000, t2 = isINR ? 1000000 : 10000, t3 = isINR ? 2000000 : 20000;
+      const label = n => isINR ? U.fmtCr(n) : cur + " " + n.toLocaleString();
+      const buckets = { [`< ${label(t1)}`]: 0, [`${label(t1)}–${label(t2)}`]: 0, [`${label(t2)}–${label(t3)}`]: 0, [`${label(t3)}+`]: 0 };
+      const keys = Object.keys(buckets);
       kase.censusValidation.rows.filter(r => r.status === "Accepted" && r.salary).forEach(r => {
-        if (r.salary < 500000) buckets["< ₹5L"]++;
-        else if (r.salary < 1000000) buckets["₹5–10L"]++;
-        else if (r.salary < 2000000) buckets["₹10–20L"]++;
-        else buckets["₹20L+"]++;
+        if (r.salary < t1) buckets[keys[0]]++;
+        else if (r.salary < t2) buckets[keys[1]]++;
+        else if (r.salary < t3) buckets[keys[2]]++;
+        else buckets[keys[3]]++;
       });
       const maxS = Math.max(1, ...Object.values(buckets));
       salaryBars = Object.entries(buckets).map(([k, v]) => bar(k, v, maxS)).join("");

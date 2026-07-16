@@ -106,6 +106,11 @@
     const premium = kase.proposal.premium - kase.proposal.discount;
     const gst = kase.proposal.taxes;
     const total = premium + gst;
+    const taxLabel = cur === "INR" ? "GST" : cur === "QAR" ? "VAT (n/a)" : "VAT";
+    // India's payment rails (NEFT/RTGS/UPI) stay fully working but hidden by default;
+    // the Gulf currencies (OMR/AED/QAR) get the region's actual settlement methods.
+    const modes = cur === "INR" ? ["NEFT", "RTGS", "Cheque", "UPI"] : ["Bank Transfer", "Wire Transfer (SWIFT)", "Cheque", "Online Payment"];
+    const txnHint = cur === "INR" ? "Mandatory for NEFT/RTGS/UPI" : "Mandatory for Bank Transfer/Wire Transfer/Online Payment";
 
     return `
     <div class="screen-head">
@@ -116,15 +121,15 @@
     <div class="mini-stats">
       <div class="kpi"><div class="kpi-label">Invoice</div><div class="kpi-value" style="font-size:16px;">${U.esc(invoiceNo)}</div></div>
       <div class="kpi"><div class="kpi-label">Premium</div><div class="kpi-value" style="font-size:16px;">${U.fmtMoney(premium, cur)}</div></div>
-      <div class="kpi"><div class="kpi-label">GST</div><div class="kpi-value" style="font-size:16px;">${U.fmtMoney(gst, cur)}</div></div>
+      <div class="kpi"><div class="kpi-label">${taxLabel}</div><div class="kpi-value" style="font-size:16px;">${U.fmtMoney(gst, cur)}</div></div>
       <div class="kpi"><div class="kpi-label">Total</div><div class="kpi-value" style="font-size:16px;">${U.fmtMoney(total, cur)}</div></div>
     </div>
     ${!p ? `
     <form id="screenForm">
       <div class="screen-grid">
         <div class="field-row full"><label>Payment Mode <span class="req">*</span></label>
-          <div class="radio-row">${["NEFT", "RTGS", "Cheque", "UPI"].map(m => `<label class="radio-opt"><input type="radio" name="mode" value="${m}" ${m === "NEFT" ? "checked" : ""}> ${m}</label>`).join("")}</div></div>
-        <div class="field-row"><label>Transaction / Cheque Number <span class="req">*</span></label><input class="input" name="txnNumber" placeholder="Mandatory for NEFT/RTGS/UPI"></div>
+          <div class="radio-row">${modes.map((m, i) => `<label class="radio-opt"><input type="radio" name="mode" value="${m}" ${i === 0 ? "checked" : ""}> ${m}</label>`).join("")}</div></div>
+        <div class="field-row"><label>Transaction / Cheque Number <span class="req">*</span></label><input class="input" name="txnNumber" placeholder="${txnHint}"></div>
         <div class="field-row"><label>Upload Payment Proof <span class="req">*</span></label>
           <div class="dropzone" data-action="stub-upload" data-label="payment proof"><div class="dz-title">Click to attach</div><div class="dz-sub">PDF/JPEG, max 5MB</div></div></div>
       </div>

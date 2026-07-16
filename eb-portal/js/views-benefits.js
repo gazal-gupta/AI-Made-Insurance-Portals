@@ -6,13 +6,14 @@
   const U = UI, J = JOURNEY;
   window.SCREENS = window.SCREENS || {};
 
-  const SI_SLABS = [300000, 500000, 1000000, 2000000];
+  const SI_SLABS = [5000, 10000, 20000, 30000];
   const FAMILY_DEFS = ["Employee Only", "Employee, Spouse", "Employee, Spouse, 2 Children", "Employee, Spouse, 2 Children, Parents"];
   const PED_GROUP_THRESHOLD = 100;
 
   /* ---------- Screen 8: Benefit Configuration (GMC) ---------- */
   SCREENS["benefit-gmc"] = function (kase) {
     const b = kase.benefitGMC;
+    const cur = U.currencyOf(kase);
     const lives = kase.employer.employeeCount;
     const pedAutoWaive = lives > PED_GROUP_THRESHOLD;
     return `
@@ -24,7 +25,7 @@
     <form id="screenForm">
       <div class="screen-grid">
         <div class="field-row"><label>Base Sum Insured <span class="req">*</span></label>
-          <select class="select" name="baseSumInsured">${SI_SLABS.map(si => `<option value="${si}" ${(b ? b.baseSumInsured : 500000) === si ? "selected" : ""}>${U.fmtCr(si)}</option>`).join("")}</select></div>
+          <select class="select" name="baseSumInsured">${SI_SLABS.map(si => `<option value="${si}" ${(b ? b.baseSumInsured : 10000) === si ? "selected" : ""}>${U.fmtMoney(si, cur)}</option>`).join("")}</select></div>
         <div class="field-row"><label>Family Definition <span class="req">*</span></label>
           <select class="select" name="familyDefinition">${FAMILY_DEFS.map(f => `<option ${(b ? b.familyDefinition : FAMILY_DEFS[2]) === f ? "selected" : ""}>${f}</option>`).join("")}</select></div>
         <div class="field-row"><label>Room Rent <span class="req">*</span></label>
@@ -32,9 +33,9 @@
             ${["Single Private AC", "Twin Sharing", "1% of Sum Insured capping"].map(r => `<option ${(b ? b.roomRent : "Single Private AC") === r ? "selected" : ""}>${r}</option>`).join("")}</select></div>
         <div class="field-row"><label>Co-pay <span class="opt">optional, %</span></label>
           <input class="input" name="copay" type="number" min="0" max="30" value="${b && b.copay ? b.copay : ""}"></div>
-        <div class="field-row"><label>Deductible <span class="opt">optional, ₹</span></label>
+        <div class="field-row"><label>Deductible <span class="opt">optional, ${cur}</span></label>
           <input class="input" name="deductible" type="number" min="0" value="${b && b.deductible ? b.deductible : ""}"></div>
-        <div class="field-row"><label>Corporate Buffer <span class="opt">optional, ₹ — pooled top-up</span></label>
+        <div class="field-row"><label>Corporate Buffer <span class="opt">optional, ${cur} — pooled top-up</span></label>
           <input class="input" name="corporateBuffer" type="number" min="0" value="${b && b.corporateBuffer ? b.corporateBuffer : ""}">
           <div class="hint">If selected, requires a separate buffer premium calculation at Screen 12.</div></div>
         <div class="field-row"><label>PED Waiting Period <span class="req">*</span></label>
@@ -139,6 +140,7 @@
   /* ---------- Screen 10: Previous Insurance Experience (conditional) ---------- */
   SCREENS["previous-insurance"] = function (kase) {
     const p = kase.prevInsurance;
+    const cur = U.currencyOf(kase);
     return `
     <div class="screen-head">
       <div class="screen-num">Screen 10</div>
@@ -153,8 +155,8 @@
         <div class="field-row"><label>Policy Start <span class="req">*</span></label><input class="input" name="policyStart" type="date" value="${p ? p.policyStart : ""}"></div>
         <div class="field-row"><label>Policy End <span class="req">*</span></label><input class="input" name="policyEnd" type="date" value="${p ? p.policyEnd : ""}"></div>
         <div class="field-row"><label>Lives Covered <span class="req">*</span></label><input class="input" name="livesCovered" type="number" min="0" value="${p ? p.livesCovered : ""}"></div>
-        <div class="field-row"><label>Premium (₹) <span class="req">*</span></label><input class="input" name="premium" type="number" min="0" value="${p ? p.premium : ""}"></div>
-        <div class="field-row"><label>Claims (₹) <span class="opt">used to derive Loss Ratio</span></label><input class="input" name="claims" type="number" min="0" value="${p ? p.claims : ""}"></div>
+        <div class="field-row"><label>Premium (${cur}) <span class="req">*</span></label><input class="input" name="premium" type="number" min="0" value="${p ? p.premium : ""}"></div>
+        <div class="field-row"><label>Claims (${cur}) <span class="opt">used to derive Loss Ratio</span></label><input class="input" name="claims" type="number" min="0" value="${p ? p.claims : ""}"></div>
         <div class="field-row"><label>Number of Claims <span class="opt">optional — used to derive Claim Ratio</span></label><input class="input" name="claimCount" type="number" min="0" value="${p && p.claimCount ? p.claimCount : ""}"></div>
         <div class="field-row full"><label>Major Claims <span class="opt">optional — narrative of large / ongoing claims</span></label>
           <textarea class="input" name="majorClaims">${U.esc(p ? p.majorClaims : "")}</textarea></div>

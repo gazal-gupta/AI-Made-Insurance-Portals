@@ -34,7 +34,7 @@
     const co = kase.lead.companyName;
     const owner = U.salesExec(kase.salesExecutiveId).name;
     const brokerNote = kase.brokerId ? " · Broker: " + U.esc(U.broker(kase.brokerId).name) : " · Direct business";
-    const geoNote = U.geographyOf(kase) !== "India" ? ` · ${U.esc(U.geographyOf(kase))} (${U.currencyOf(kase)})` : "";
+    const geoNote = U.geographyOf(kase) !== "Oman" ? ` · ${U.esc(U.geographyOf(kase))} (${U.currencyOf(kase)})` : "";
 
     const stepMeta = J.stepMeta(screenKey);
     const applicable = stepMeta && J.isApplicable(kase, screenKey);
