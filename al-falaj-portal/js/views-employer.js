@@ -49,6 +49,10 @@
       <div class="screen-title">Employer Profile</div>
       <div class="screen-purpose">Capture statutory, financial, and organisational details of the employer for underwriting and compliance.</div>
     </div>
+    ${geo === "Oman" ? `<div class="field-row" style="margin-bottom:14px;">
+      <button type="button" class="btn btn-sm" data-action="stub-moc-fetch" data-case="${kase.id}">Auto-fetch from Ministry of Commerce (prototype) →</button>
+      <div class="hint">Would pre-fill Legal Name, Industry, CR Number and headcount directly from Oman's business registry. Simulated for this demo — needs a live MOC/Ministry of Labour API integration to work for real.</div>
+    </div>` : ""}
     <form id="screenForm">
       <div class="screen-grid">
         <div class="field-row"><label>Legal Name <span class="req">*</span></label>
@@ -81,6 +85,22 @@
         <div class="right"><button type="button" class="btn btn-amber" data-action="save-employer" data-case="${kase.id}">Save &amp; Continue →</button></div>
       </div>
     </form>`;
+  };
+
+  ACTIONS["stub-moc-fetch"] = function (d) {
+    const kase = U.kase(d.case);
+    const form = document.getElementById("screenForm");
+    if (!form) return;
+    // Prototype only: illustrates the intended "zero-touch employer profiling" UX from a
+    // live Oman Ministry of Commerce / Ministry of Labour integration. No external service
+    // is actually called — these are plausible canned values pre-filled for the demo.
+    const cr = form.querySelector('[name="crNumber"]');
+    const vatin = form.querySelector('[name="vatin"]');
+    if (cr) cr.value = "1" + String(200000 + Math.floor(Math.random() * 799999));
+    if (vatin) vatin.value = "OM1" + String(100000000000 + Math.floor(Math.random() * 899999999999)).slice(0, 12);
+    const empCountEl = form.querySelector('[name="employeeCount"]');
+    if (empCountEl && !empCountEl.value) empCountEl.value = kase.lead.expectedEmployeeCount;
+    U.toast("Prototype fetch complete — CR Number and VATIN pre-filled from a (simulated) Ministry of Commerce lookup. This demo does not call a live government API; review before saving.", "warn");
   };
 
   ACTIONS["save-employer"] = function (d) {
@@ -226,6 +246,10 @@
     </div>
     ${c ? `<div class="field-row"><label>Errors Summary</label>
       <input class="input" readonly value="${kase.censusValidation ? kase.censusValidation.rejected + " row(s) failed validation" : "Not yet validated"}"></div>` : ""}
+    ${c && c.detectedColumns ? `<div class="card" style="margin-top:16px;"><div class="card-head"><div><div class="card-title">AI-Assisted Column Mapping</div><div class="card-sub">Your file's headers, matched to the system's fields automatically</div></div></div>
+      <div class="card-body"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>System Field</th><th>Matched Column Header</th></tr></thead>
+      <tbody>${c.detectedColumns.map(m => `<tr><td>${U.esc(m.field)}</td><td class="cell-sub">"${U.esc(m.header)}"</td></tr>`).join("")}</tbody></table></div></div>
+    </div>` : ""}
     <div class="skip-note">Business rule: upload is blocked if the file does not match the published template column headers. Employee Count derived from the file must reconcile with the Employer Profile Employee Count within tolerance; variance beyond tolerance requires HR confirmation before proceeding.</div>
     <div class="screen-foot">
       <span></span>
@@ -259,7 +283,7 @@
       }
       kase.census = {
         fileName: file.name, uploadedAt: DB.TODAY, rows: result.rows, hrConfirmedVariance: false,
-        totalParsed: result.totalParsed, rowLimitHit: result.rowLimitHit
+        totalParsed: result.totalParsed, rowLimitHit: result.rowLimitHit, detectedColumns: result.detectedColumns
       };
       kase.censusValidation = null;
       DB.pushNotif(kase, "Census uploaded", "info", `Census uploaded for <strong>${U.esc(kase.lead.companyName)}</strong> — ${result.rows.length} rows`, `#/case/${kase.id}/census-validation`);
@@ -337,18 +361,18 @@
     ${cv.rejected > 0 ? `
     <div class="card" style="margin:16px 0;"><div class="card-head"><div><div class="card-title">Failed Rows</div><div class="card-sub">Excluded from rating until corrected and re-uploaded</div></div>
       <div class="card-link" data-action="download-census-errors" data-case="${kase.id}">Download errors →</div></div>
-      <div class="card-body"><ul class="errlist">${cv.rows.filter(r => r.status === "Rejected").slice(0, 20).map(r => `<li><span>${U.esc(r.empId)} — ${U.esc(r.name || "(blank)")}</span><span style="color:var(--red)">${U.esc(r.reason)}</span></li>`).join("")}</ul></div>
+      <div class="card-body"><ul class="errlist">${cv.rows.filter(r => r.status === "Rejected").slice(0, 20).map(r => `<li><span>${U.esc(r.empId)} — ${U.esc(U.piiMasked() ? (U.maskName(r.name) || "(blank)") : (r.name || "(blank)"))}</span><span style="color:var(--red)">${U.esc(r.reason)}</span></li>`).join("")}</ul></div>
     </div>` : ""}
     ${anomalies.length ? `
     <div class="card" style="margin:16px 0;"><div class="card-head"><div><div class="card-title">AI-Detected Anomalies</div><div class="card-sub">Informational only — does not block validation; worth a human glance before rating</div></div></div>
       <div class="card-body"><ul class="errlist">${anomalies.map(a => `<li><span>${U.esc(a.detail)}</span><span class="cell-sub">${a.type === "duplicate" ? "Possible duplicate" : "Salary outlier"}</span></li>`).join("")}</ul></div>
     </div>` : ""}
     <div class="card">
-      <div class="card-head"><div><div class="card-title">Census Records</div><div class="card-sub">Showing first ${displayRows.length} of ${cv.rows.length} rows</div></div>
+      <div class="card-head"><div><div class="card-title">Census Records</div><div class="card-sub">Showing first ${displayRows.length} of ${cv.rows.length} rows${U.piiMasked() ? " — Employee Name and DOB masked for this role (PDPL data minimization)" : ""}</div></div>
         <div class="card-link" data-action="download-census-full" data-case="${kase.id}">Export full list →</div></div>
       <div class="card-body"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Employee ID</th><th>Name</th><th>DOB</th><th class="num">Age</th><th>Gender</th><th class="num">Salary</th><th>Coverage</th><th>Status</th></tr></thead>
       <tbody>${displayRows.map(r => `<tr>
-        <td>${U.esc(r.empId)}</td><td>${U.esc(r.name || "(blank)")}</td><td>${U.fmtDate(r.dob)}</td><td class="num">${Number.isNaN(r.age) ? "—" : r.age}</td>
+        <td>${U.esc(r.empId)}</td><td>${U.esc(U.piiMasked() ? U.maskName(r.name) || "(blank)" : (r.name || "(blank)"))}</td><td>${U.piiMasked() ? U.esc(U.maskDob(r.dob)) : U.fmtDate(r.dob)}</td><td class="num">${Number.isNaN(r.age) ? "—" : r.age}</td>
         <td>${U.esc(r.gender)}</td><td class="num">${r.salary ? U.fmtMoney(r.salary, cur) : "—"}</td><td>${U.esc(r.coverage)}</td>
         <td>${U.pill(r.status)}${r.reason ? `<div class="cell-sub">${U.esc(r.reason)}</div>` : ""}</td>
       </tr>`).join("")}</tbody></table></div></div>

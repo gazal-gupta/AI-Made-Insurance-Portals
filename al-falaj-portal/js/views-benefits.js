@@ -167,7 +167,9 @@
         <div class="field-row full"><label>Upload Claim Experience Report <span class="opt">optional — PDF/XLSX, max 10MB</span></label>
           <div class="dropzone" data-action="stub-upload" data-label="claim experience report">
             <div class="dz-title">${p && p.reportFile ? "Replace file" : "Click to attach"}</div><div class="dz-sub">${p && p.reportFile ? U.esc(p.reportFile) : "No file attached yet"}</div>
-          </div></div>
+          </div>
+          <div class="hint" style="margin-top:6px;"><a data-action="ai-extract-loss-run" data-case="${kase.id}" style="cursor:pointer;">Try AI extraction from a loss-run PDF (prototype) →</a> auto-fills the fields above from a scanned insurer statement.
+            <span style="color:var(--ink-3);">Simulated for this demo — a production build would need a real OCR/LLM document-extraction backend, not implemented here.</span></div></div>
       </div>
       ${p && p.premium ? `<div class="card" style="margin-top:6px;"><div class="card-body">
         <div class="brk-row"><span>Loss Ratio</span><span>${DB.calc.lossRatio(p) == null ? "—" : DB.calc.lossRatio(p) + "%"}</span></div>
@@ -178,6 +180,29 @@
         <div class="right"><button type="button" class="btn btn-amber" data-action="save-previous-insurance" data-case="${kase.id}">Save &amp; Continue →</button></div>
       </div>
     </form>`;
+  };
+
+  ACTIONS["ai-extract-loss-run"] = function (d) {
+    const kase = U.kase(d.case);
+    const form = document.getElementById("screenForm");
+    if (!form) return;
+    // Prototype only: illustrates the intended UX for GenAI/OCR extraction from a scanned
+    // insurer loss-run PDF. No document was actually read — these are plausible canned
+    // values, not derived from any file. A real build needs an OCR/LLM backend (out of
+    // scope for this static-shell demo) to genuinely parse an uploaded PDF.
+    const lives = kase.employer ? kase.employer.employeeCount : 100;
+    const premium = Math.round(lives * (180 + Math.random() * 60));
+    const claims = Math.round(premium * (0.45 + Math.random() * 0.35));
+    form.querySelector('[name="currentInsurer"]').value = "Gulf Assure Insurance Co. SAOC";
+    form.querySelector('[name="policyNumber"]').value = "GA-EB-" + (10000 + Math.floor(Math.random() * 89999));
+    form.querySelector('[name="policyStart"]').value = DB.calc.addDays(DB.TODAY, -365);
+    form.querySelector('[name="policyEnd"]').value = DB.calc.addDays(DB.TODAY, -1);
+    form.querySelector('[name="livesCovered"]').value = lives;
+    form.querySelector('[name="premium"]').value = premium;
+    form.querySelector('[name="claims"]').value = claims;
+    form.querySelector('[name="claimCount"]').value = Math.max(1, Math.round(lives * 0.08));
+    form.querySelector('[name="majorClaims"]').value = "[AI-extracted — prototype] One in-patient claim (cardiac, ~35% of total claims paid) still open at policy end; remainder are routine out-patient/maternity claims.";
+    U.toast("Prototype extraction complete — fields pre-filled from the (simulated) loss-run PDF. Review every value before saving; this demo does not read your actual file.", "warn");
   };
 
   ACTIONS["save-previous-insurance"] = function (d) {

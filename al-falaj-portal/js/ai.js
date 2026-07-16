@@ -140,6 +140,26 @@
     return note;
   }
 
+  /* ---------- lead win-probability score (Screen 3) ----------
+     A separate, AI-suggested signal alongside the rep's own manually-entered Probability
+     field — never overwrites it. Weighted from factors that correlate with faster/likelier
+     closes in this book: industry risk, lead source, broker involvement, deal size band,
+     and multi-product intent. Deterministic and explainable, not a black box. */
+  function leadWinProbability(kase) {
+    let score = 50;
+    const risk = (DB.industry(kase.lead.industry) || {}).risk;
+    score += risk === "Low" ? 10 : risk === "High" ? -12 : 0;
+    const sweetSpotSizes = ["51–200", "201–1000"];
+    if (sweetSpotSizes.includes(kase.lead.corporateSize)) score += 8;
+    const sourceBoost = { Broker: 12, Referral: 9, Renewal: 15, Event: 4, Digital: 0, "Cold Call": -10 };
+    score += sourceBoost[kase.lead.leadSource] || 0;
+    if (kase.brokerId) score += 5;
+    const products = (kase.opportunity ? kase.opportunity.products : kase.lead.products) || [];
+    if (products.length > 1) score += 6;
+    if (kase.lead.duplicateFlag) score -= 8;
+    return Math.max(5, Math.min(95, Math.round(score)));
+  }
+
   /* ---------- smart prioritization score (0-100, higher = more urgent) ----------
      Combines deal size, staleness, proximity to expected close, and underwriting
      risk into a single ranking signal — layered on top of, not replacing, the
@@ -164,6 +184,81 @@
     }
     if (kase.brokerId) score += 5;
     return Math.round(Math.min(100, score));
+  }
+
+  /* ---------- keyword-assisted case query (prototype for the Copilot's natural-language
+     search) ---------- This is a deterministic keyword/regex parser, not true natural
+     language understanding — it recognizes a fixed vocabulary (industry names, "renewal",
+     "next month", "loss ratio under/over N%", traffic-light colors) and falls back to a
+     fuzzy company-name search. A production build would swap this for an LLM-backed parser;
+     labeled honestly wherever it's surfaced in the UI. */
+  const INDUSTRY_SYNONYMS = {
+    ENERGY: ["energy", "oil", "gas"], LOGISTICS: ["logistics", "ports", "free zone", "shipping"],
+    CONSTR: ["construction", "infrastructure"], MFG: ["manufacturing", "industrial"],
+    BFSI: ["bank", "financial", "bfsi"], TOURISM: ["tourism", "hospitality", "hotel"],
+    RETAIL: ["retail", "trading"], FOOD: ["food", "agri"], TELECOM: ["telecom", "tech"],
+    HEALTHCARE: ["healthcare", "pharma", "health"], GOVT: ["government", "govt", "semi-government"]
+  };
+  function queryCases(text) {
+    const q = String(text || "").toLowerCase().trim();
+    if (!q) return { matches: [], applied: [] };
+    let matches = DB.CASES.filter(c => !(c.issuance && c.issuance.finished));
+    const applied = [];
+
+    for (const code in INDUSTRY_SYNONYMS) {
+      if (INDUSTRY_SYNONYMS[code].some(kw => q.includes(kw))) {
+        matches = matches.filter(c => c.lead.industry === code);
+        applied.push(`industry = ${(DB.industry(code) || {}).label || code}`);
+        break;
+      }
+    }
+
+    if (/\brenew(al|ing|s)?\b/.test(q)) {
+      const renewCompanies = new Set(DB.RENEWALS.map(r => r.company));
+      matches = matches.filter(c => renewCompanies.has(c.lead.companyName));
+      applied.push("upcoming renewal");
+      if (/next month/.test(q)) {
+        matches = matches.filter(c => {
+          const r = DB.RENEWALS.find(x => x.company === c.lead.companyName);
+          const days = r ? U.daysUntil(r.expiry) : null;
+          return days != null && days > 30 && days <= 60;
+        });
+        applied.push("due in 31-60 days");
+      } else if (/this month|30 days/.test(q)) {
+        matches = matches.filter(c => {
+          const r = DB.RENEWALS.find(x => x.company === c.lead.companyName);
+          const days = r ? U.daysUntil(r.expiry) : null;
+          return days != null && days <= 30;
+        });
+        applied.push("due within 30 days");
+      }
+    }
+
+    const lrMatch = q.match(/loss ratio\D*(under|below|less than|over|above|greater than)\D*(\d+)/);
+    if (lrMatch) {
+      const dir = lrMatch[1], threshold = Number(lrMatch[2]);
+      const isUnder = dir === "under" || dir === "below" || dir === "less than";
+      matches = matches.filter(c => {
+        const lr = DB.calc.lossRatio(c.prevInsurance);
+        return lr != null && (isUnder ? lr < threshold : lr > threshold);
+      });
+      applied.push(`loss ratio ${isUnder ? "under" : "over"} ${threshold}%`);
+    }
+
+    ["red", "amber", "green"].forEach(tl => {
+      if (new RegExp(`\\b${tl}\\b`).test(q)) {
+        const label = tl[0].toUpperCase() + tl.slice(1);
+        matches = matches.filter(c => c.underwriting && DB.calc.trafficLight(c) === label);
+        applied.push(`traffic light = ${label}`);
+      }
+    });
+
+    if (!applied.length) {
+      matches = matches.filter(c => c.lead.companyName.toLowerCase().includes(q) || similarity(q, c.lead.companyName) > 0.4);
+      applied.push("company name match");
+    }
+
+    return { matches: matches.slice(0, 10), applied };
   }
 
   /* ---------- role-aware Copilot ----------
@@ -232,6 +327,6 @@
   window.AI = {
     similarity, findFuzzyDuplicate, censusAnomalies,
     draftUnderwritingNarrative, draftProposalCoverNote,
-    priorityScore, copilotInsights
+    leadWinProbability, priorityScore, copilotInsights, queryCases
   };
 })();

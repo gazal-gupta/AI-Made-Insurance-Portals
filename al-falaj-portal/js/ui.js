@@ -140,9 +140,22 @@ window.ACTIONS = window.ACTIONS || {};
     toast(`Preparing <strong>${esc(filename)}</strong> — ${kind || "document"} download will start shortly.`);
   }
 
+  /* ---------- PDPL data minimization: oversight/reporting roles (Business Head,
+     Finance Head, Operations) don't operationally need individual employee PII — they
+     work from aggregate risk/financial figures. Underwriter, Sales, Broker and Policy
+     Admin keep full visibility since they administer individual coverage. ---------- */
+  const PII_MASKED_ROLES = ["Business Head", "Finance Head", "Operations"];
+  function piiMasked() { return PII_MASKED_ROLES.includes(DB.CURRENT_USER.role); }
+  function maskName(name) {
+    if (!name) return name;
+    return String(name).split(/\s+/).map(w => w[0] ? w[0].toUpperCase() + "*".repeat(Math.max(1, w.length - 1)) : w).join(" ");
+  }
+  function maskDob(dob) { return dob ? String(dob).slice(0, 4) + "-**-**" : dob; }
+
   window.UI = {
     fmtINR, fmtNum, fmtCr, fmtOMR, fmtOMRFull, fmtAED, fmtAEDFull, fmtQAR, fmtQARFull, fmtMoney, fmtMoneyFull, currencyOf, geographyOf, fmtDate, daysUntil, dueLabel, esc,
     kase, salesExec, broker, underwriter, initials, companyOf, productsOf,
-    pill, trafficChip, toast, openModal, closeModal, exportCSV, downloadStub
+    pill, trafficChip, toast, openModal, closeModal, exportCSV, downloadStub,
+    piiMasked, maskName, maskDob
   };
 })();

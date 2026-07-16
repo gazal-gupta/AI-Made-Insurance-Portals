@@ -25,7 +25,7 @@
         navKey = "pipeline";
       }
     } else if (VIEWS[page]) {
-      html = VIEWS[page]();
+      html = VIEWS[page](a, b);
     } else {
       html = VIEWS.dashboard();
       navKey = "dashboard";
@@ -159,9 +159,37 @@
         <div class="bp-ico info">&#10022;</div>
         <div><div class="bp-txt">${U.esc(it.text)}</div></div>
       </div>`).join("") +
+      `<div class="copilot-query">
+        <div class="copilot-query-label">Ask about your book <span class="opt">keyword-assisted, not full natural language — prototype</span></div>
+        <div class="copilot-query-row">
+          <input type="text" id="copilotQueryInput" placeholder='e.g. tech companies renewing next month, loss ratio under 60%'>
+          <button type="button" class="btn btn-sm" data-action="run-copilot-query">Ask</button>
+        </div>
+        <div id="copilotQueryResults"></div>
+      </div>` +
       `<div class="copilot-foot">AI-assisted — recombines data already on your cases; not a substitute for underwriting or compliance sign-off.</div>`;
   }
   document.getElementById("copilotBtn").addEventListener("click", () => { copilotPanel.classList.toggle("open"); });
+
+  /* Deterministic keyword-parsed query over the case book — not true natural-language
+     understanding (see AI.queryCases in ai.js for the honest scope note). */
+  ACTIONS["run-copilot-query"] = function () {
+    const input = document.getElementById("copilotQueryInput");
+    const resultsEl = document.getElementById("copilotQueryResults");
+    if (!input || !resultsEl) return;
+    if (!input.value.trim()) {
+      resultsEl.innerHTML = `<div class="sr-empty">Try: company/industry keywords, "renewal next month", "loss ratio under 60%", or a traffic-light color (red/amber/green).</div>`;
+      return;
+    }
+    const { matches, applied } = AI.queryCases(input.value);
+    resultsEl.innerHTML = `<div class="cell-sub" style="padding:8px 0 4px;">Interpreted as: ${applied.map(a => U.esc(a)).join(" + ")}</div>` +
+      (matches.length
+        ? matches.map(c => `<div class="bp-item" data-go="#/case/${c.id}">
+            <div class="bp-ico info">&#8226;</div>
+            <div><div class="bp-txt">${U.esc(c.lead.companyName)}</div><div class="bp-when">${U.esc(c.stage)} · ${U.esc(U.productsOf(c).join("+"))}</div></div>
+          </div>`).join("")
+        : `<div class="sr-empty">No matching cases.</div>`);
+  };
 
   /* ---------- boot ---------- */
   window.App = { render, refreshBell };

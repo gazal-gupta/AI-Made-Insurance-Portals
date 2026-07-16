@@ -86,7 +86,10 @@
 
     const colMap = mapColumns(grid[0]);
     const missingColumns = REQUIRED.filter(k => colMap[k] == null);
-    if (missingColumns.length) return { rows: [], missingColumns, parseError: null, rowLimitHit: false, totalParsed: 0 };
+    if (missingColumns.length) return { rows: [], missingColumns, parseError: null, rowLimitHit: false, totalParsed: 0, detectedColumns: null };
+
+    const FIELD_LABELS = { empId: "Employee ID", name: "Employee Name", dob: "DOB", gender: "Gender", salary: "Salary", coverage: "Coverage" };
+    const detectedColumns = Object.keys(colMap).map(k => ({ field: FIELD_LABELS[k] || k, header: String(grid[0][colMap[k]]) }));
 
     const dataRows = grid.slice(1).filter(r => r.some(c => String(c).trim() !== ""));
     const totalParsed = dataRows.length;
@@ -102,7 +105,7 @@
       coverage: colMap.coverage != null ? normalizeCoverage(r[colMap.coverage]) : "Employee Only"
     }));
 
-    return { rows, missingColumns: [], parseError: null, rowLimitHit, totalParsed };
+    return { rows, missingColumns: [], parseError: null, rowLimitHit, totalParsed, detectedColumns };
   }
 
   window.XLSXImport = { parseWorkbook, HEADER_ALIASES, REQUIRED };

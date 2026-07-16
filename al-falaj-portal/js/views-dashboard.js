@@ -262,12 +262,18 @@
     const canQuote = !!(kase.employer && kase.policyReq);
     const stageOpts = ["Qualification", "Needs Analysis", "Quote", "Negotiation", "Closed Won", "Closed Lost"];
     const suggestedName = `${kase.lead.companyName} - ${products.join("/")} - 2026`;
+    const winProb = AI.leadWinProbability(kase);
+    const winProbCls = winProb >= 60 ? "var(--green)" : winProb >= 35 ? "var(--amber-ink)" : "var(--red)";
 
     return `
     <div class="screen-head">
       <div class="screen-num">Screen 3</div>
       <div class="screen-title">Opportunity</div>
       <div class="screen-purpose">Convert a qualified lead into a trackable sales opportunity with financial and timeline attributes.</div>
+    </div>
+    <div class="mini-stats" style="margin-bottom:14px;">
+      <div class="kpi"><div class="kpi-label">AI Win-Probability</div><div class="kpi-value" style="color:${winProbCls};">${winProb}%</div>
+        <div class="kpi-note">Independent of the Probability field below — weighted from industry risk, lead source, deal size band and broker involvement.</div></div>
     </div>
     <form id="screenForm">
       <div class="screen-grid">

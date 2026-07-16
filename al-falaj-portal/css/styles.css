@@ -112,6 +112,18 @@ svg { display: block; }
 .copilot-btn svg { stroke: var(--teal-700); fill: var(--teal-700); stroke-width: 1.2; }
 .copilot-panel { right: 170px; }
 .copilot-foot { padding: 10px 16px; font-size: 11px; color: var(--ink-3); background: var(--page); border-top: 1px solid var(--line-soft); }
+.copilot-query { padding: 12px 16px; border-top: 1px solid var(--line-soft); background: var(--page); }
+.copilot-query-label { font-size: 11px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; }
+.copilot-query-label .opt { font-weight: 400; text-transform: none; color: var(--ink-3); }
+.copilot-query-row { display: flex; gap: 6px; }
+.copilot-query-row input { flex: 1; padding: 6px 9px; font: inherit; font-size: 12px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); }
+#copilotQueryResults { margin-top: 8px; max-height: 200px; overflow-y: auto; }
+#copilotQueryResults .bp-item { padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
+#copilotQueryResults .bp-item:last-child { border-bottom: none; }
+
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--line); border-radius: 2px; margin: 10px 0 6px; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--teal-700); cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(6,36,32,0.3); }
+input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--teal-700); cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(6,36,32,0.3); }
 .bp-chan { font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* ============ Buttons ============ */

@@ -255,18 +255,21 @@
 
   /* ---------- premium calculators (Screen 12) — OMR ---------- */
   const SI_RATE = { 5000: 140, 10000: 230, 20000: 370, 30000: 480 };
-  function calcGMCPremium(kase, siOverride, ridersOverride) {
-    const b = kase.benefitGMC; if (!b) return 0;
+  function calcGMCPremium(kase, siOverride, overrides) {
+    const base = kase.benefitGMC; if (!base) return 0;
+    // `overrides` layers on top of the saved config rather than replacing it — used by the
+    // Interactive Proposal Microsite to preview co-pay/buffer/rider changes live without
+    // mutating the underwritten kase.benefitGMC itself.
+    const b = overrides ? Object.assign({}, base, overrides) : base;
     const lives = kase.censusValidation ? kase.censusValidation.accepted : (kase.employer ? kase.employer.employeeCount : 0);
     const si = siOverride || b.baseSumInsured;
     let perLife = SI_RATE[si] || Math.round(si * 0.024);
     if (b.familyDefinition && b.familyDefinition.includes("Children")) perLife *= 1.6;
     if (b.corporateBuffer) perLife += Math.round(b.corporateBuffer * 0.008);
     if (b.maternity) perLife += 22;
-    const riders = ridersOverride || b;
-    if (riders.opd) perLife += 32;
-    if (riders.dental) perLife += 8;
-    if (riders.vision) perLife += 6;
+    if (b.opd) perLife += 32;
+    if (b.dental) perLife += 8;
+    if (b.vision) perLife += 6;
     if (b.copay) perLife *= (1 - b.copay / 200);
     const loading = kase.underwriting && kase.underwriting.loadingPct ? 1 + kase.underwriting.loadingPct / 100 : 1;
     return Math.round(lives * perLife * loading);

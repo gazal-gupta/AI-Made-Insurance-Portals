@@ -109,6 +109,43 @@ meant for human review before it's submitted anywhere:
   data (tasks, traffic light, reconciliation, commission) into a short briefing per acting
   persona: urgent tasks for Sales, queue risk for Underwriters, reconciliation blockers for
   Finance, commission summary for Brokers, approval/pipeline health for Business Head/Ops.
+- **Lead Win-Probability score** (Screen 3) — a separate, AI-suggested 0–100% signal alongside
+  the rep's own manually-entered Probability field (never overwrites it), weighted from
+  industry risk, lead source, deal size band and broker involvement.
+- **Interactive Proposal Microsite** (Screen 13 → `#/proposal-microsite/:caseId`) — a preview of
+  the secure, employer-facing link an HR contact would use to drag co-pay/corporate-buffer
+  sliders and toggle riders, seeing the premium update live, clamped to a guardrail band around
+  the already-underwritten configuration. Submitting writes a request straight onto the
+  Negotiation screen (Screen 14) — real premium math via `DB.calc.calcGMCPremium`, no fakery.
+- **AI-assisted column mapping preview** (Screen 6) — after a real upload, shows exactly which
+  of your file's headers were matched to which system field (e.g. `"Emp Code" → Employee ID`).
+- **PDPL data minimization** (Screen 7) — Business Head / Finance Head / Operations, who work
+  from aggregate figures rather than administering individual coverage, see employee names and
+  DOBs masked (`A**** A* S****`, `1985-**-**`) in the Census Records table; Sales, Underwriting,
+  Broker and Policy Admin — who operationally need it — see it in full. Real, role-driven, not a
+  stub.
+
+## Futuristic feature prototypes (simulated — need a real backend/LLM/external API)
+
+These illustrate the intended UX for capabilities this static HTML/CSS/JS shell (no server, no
+LLM access) cannot genuinely implement. Every touchpoint below is explicitly labeled
+"prototype"/"demo" in its own UI and toast copy — nothing here is presented as if it were real:
+
+- **GenAI loss-run PDF extraction** (Screen 10, "Try AI extraction from a loss-run PDF") —
+  pre-fills Current Insurer/Premium/Claims from a canned response; a real build needs an
+  OCR/LLM document-extraction backend.
+- **Oman Ministry of Commerce / Ministry of Labour auto-fetch** (Screen 4, Oman cases only) —
+  pre-fills CR Number/VATIN from a canned response; a real build needs live government API
+  access and PDPL-compliant consent handling.
+- **WhatsApp-driven negotiation** (Screen 14) — a stub touchpoint for exchanging quote approval
+  or missing census data in-chat; a real build needs the WhatsApp Business API (out of scope
+  per FRD §1.4's current channel list).
+- **Keyword-assisted Copilot search** (topbar → AI Copilot → "Ask about your book") — a
+  deterministic regex/keyword parser (`AI.queryCases` in `js/ai.js`) recognising a fixed
+  vocabulary (industry names, "renewal", "next month", "loss ratio under/over N%", traffic-light
+  colors), with a fuzzy company-name fallback. This one is genuinely functional, just not true
+  natural-language understanding — a real build would swap the parser for an LLM backend to
+  handle arbitrary free-form phrasing.
 
 ## Reference pages
 
