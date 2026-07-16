@@ -62,7 +62,11 @@
   /* ---------- delegated actions ---------- */
   document.addEventListener("click", e => {
     const act = e.target.closest("[data-action]");
-    if (act) {
+    // <select>/<input> elements dispatch their data-action on "change" (below), not
+    // "click" — merely clicking a <select> to open its dropdown bubbles a click up to
+    // this listener too, and firing the action there re-renders mid-interaction, closing
+    // the dropdown before the user can ever choose an option.
+    if (act && act.tagName !== "SELECT" && act.tagName !== "INPUT") {
       const d = act.dataset;
       if (d.action === "close-modal") { U.closeModal(); return; }
       if (d.action === "toggle") { act.classList.toggle("on"); return; }

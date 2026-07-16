@@ -71,7 +71,14 @@
 
   /* ---------- Pipeline (full register) ---------- */
   const PF = { stage: "All", owner: "All", product: "All" };
-  ACTIONS["filter-pipeline"] = function (d, el) { PF[el.name] = el.value; App.render(); };
+  ACTIONS["filter-pipeline"] = function (d, el) {
+    PF[el.name] = el.value;
+    // Defer the re-render: App.render() replaces #view's innerHTML, and this <select>
+    // lives inside #view — rebuilding it synchronously, while still mid-dispatch of its
+    // own change event, destroys the element the browser is actively handling and the
+    // selection never sticks (the dropdown appears to just close with nothing chosen).
+    setTimeout(() => App.render(), 0);
+  };
 
   VIEWS.pipeline = function () {
     let rows = DB.CASES.slice();
