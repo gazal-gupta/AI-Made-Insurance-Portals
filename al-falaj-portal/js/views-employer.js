@@ -194,6 +194,7 @@
   };
 
   /* ---------- Screen 6: Employee Census Upload ---------- */
+  const CENSUS_ROW_LIMIT = 50000;
   SCREENS["census-upload"] = function (kase) {
     const c = kase.census;
     return `
@@ -208,16 +209,20 @@
       <div class="hint">Standard template — Employee Name, Employee ID, DOB, Gender, Salary, Coverage.</div>
     </div>
     <div class="field-row" style="margin-top:16px;">
-      <label>Upload File <span class="req">*</span> <span class="opt">XLSX/CSV, max 25MB, row limit 50,000 (default)</span></label>
-      <div class="dropzone" data-action="simulate-census-upload" data-case="${kase.id}">
-        <div class="dz-title">${c ? "Replace uploaded file" : "Click to simulate census upload"}</div>
-        <div class="dz-sub">${c ? U.esc(c.fileName) + " — uploaded " + U.fmtDate(c.uploadedAt) : "No file uploaded yet"}</div>
+      <label>Upload File <span class="req">*</span> <span class="opt">XLSX/CSV, max 25MB, row limit ${CENSUS_ROW_LIMIT.toLocaleString()} (default)</span></label>
+      <input type="file" id="censusFileInput" accept=".xlsx,.xls,.csv" style="display:none" data-action="upload-census-file" data-case="${kase.id}">
+      <div class="dropzone" data-action="trigger-census-file">
+        <div class="dz-title">${c ? "Replace uploaded file" : "Click to upload census file"}</div>
+        <div class="dz-sub">${c ? U.esc(c.fileName) + " — uploaded " + U.fmtDate(c.uploadedAt) : "XLSX or CSV, matching the template headers"}</div>
       </div>
-      <div class="hint"><a data-action="simulate-bad-template" style="cursor:pointer;color:var(--red)">Simulate a file with mismatched template headers →</a></div>
+      <div class="hint">
+        Column headers are matched flexibly (e.g. "Emp Name" or "Full Name" both work) — but a file missing a required column is still blocked.
+        <a data-action="generate-sample-census" data-case="${kase.id}" style="cursor:pointer;">No file handy? Generate a sample census →</a>
+      </div>
     </div>
     <div class="field-row" style="margin-top:16px;">
       <label>Employee Count <span class="opt">system — auto-derived from file row count</span></label>
-      <input class="input" readonly value="${c ? c.rows.length + " rows" : "—"}">
+      <input class="input" readonly value="${c ? c.rows.length + " rows" + (c.rowLimitHit ? ` (of ${c.totalParsed.toLocaleString()} in file — row limit applied)` : "") : "—"}">
     </div>
     ${c ? `<div class="field-row"><label>Errors Summary</label>
       <input class="input" readonly value="${kase.censusValidation ? kase.censusValidation.rejected + " row(s) failed validation" : "Not yet validated"}"></div>` : ""}
@@ -232,11 +237,45 @@
     U.exportCSV("EB_Census_Template.csv", ["Employee Name", "Employee ID", "DOB (YYYY-MM-DD)", "Gender", "Salary (if applicable)", "Coverage (Employee Only / Family Floater)"], [["", "", "", "", "", ""]]);
   };
 
-  ACTIONS["simulate-bad-template"] = function () {
-    U.toast("Upload blocked — file columns do not match the published template headers. Please use the downloaded template.", "err");
+  ACTIONS["trigger-census-file"] = function () {
+    const input = document.getElementById("censusFileInput");
+    if (input) input.click();
   };
 
-  ACTIONS["simulate-census-upload"] = function (d) {
+  ACTIONS["upload-census-file"] = function (d, el) {
+    const kase = U.kase(d.case);
+    const file = el.files && el.files[0];
+    if (!file) return;
+    if (file.size > 25 * 1024 * 1024) { U.toast("File exceeds the 25MB upload limit.", "err"); el.value = ""; return; }
+
+    const reader = new FileReader();
+    reader.onload = function () {
+      const result = XLSXImport.parseWorkbook(reader.result, CENSUS_ROW_LIMIT);
+      if (result.parseError) { U.toast(result.parseError, "err"); el.value = ""; return; }
+      if (result.missingColumns && result.missingColumns.length) {
+        U.toast(`Upload blocked — file is missing required column(s): <strong>${result.missingColumns.join(", ")}</strong>. Please use the downloaded template.`, "err");
+        el.value = "";
+        return;
+      }
+      kase.census = {
+        fileName: file.name, uploadedAt: DB.TODAY, rows: result.rows, hrConfirmedVariance: false,
+        totalParsed: result.totalParsed, rowLimitHit: result.rowLimitHit
+      };
+      kase.censusValidation = null;
+      DB.pushNotif(kase, "Census uploaded", "info", `Census uploaded for <strong>${U.esc(kase.lead.companyName)}</strong> — ${result.rows.length} rows`, `#/case/${kase.id}/census-validation`);
+      U.toast(result.rowLimitHit
+        ? `Uploaded <strong>${result.rows.length.toLocaleString()}</strong> of ${result.totalParsed.toLocaleString()} rows — row limit (${CENSUS_ROW_LIMIT.toLocaleString()}) reached; remaining rows were not imported.`
+        : `Uploaded <strong>${result.rows.length}</strong> employee rows from <strong>${U.esc(file.name)}</strong>. Confirmation email sent to HR Contact and Sales Executive.`,
+        result.rowLimitHit ? "warn" : "ok");
+      el.value = "";
+      App.render();
+      location.hash = `#/case/${kase.id}/census-upload`;
+    };
+    reader.onerror = function () { U.toast("Could not read the selected file.", "err"); el.value = ""; };
+    reader.readAsArrayBuffer(file);
+  };
+
+  ACTIONS["generate-sample-census"] = function (d) {
     const kase = U.kase(d.case);
     const declared = kase.employer.employeeCount;
     const asOf = kase.policyReq ? kase.policyReq.effectiveDate : DB.calc.addDays(DB.TODAY, 30);
@@ -245,10 +284,10 @@
     const rows = DB.calc.genCensus(Date.now() % 100000, declared, {
       asOf, minAge: 18, maxAge: 79, withSalary: salaryReq, prefix: kase.id.slice(-4) + "-"
     });
-    kase.census = { fileName: `${kase.lead.companyName.replace(/\s+/g, "_")}_Census.xlsx`, uploadedAt: DB.TODAY, rows, hrConfirmedVariance: false };
+    kase.census = { fileName: `${kase.lead.companyName.replace(/\s+/g, "_")}_Census_Sample.xlsx`, uploadedAt: DB.TODAY, rows, hrConfirmedVariance: false, totalParsed: rows.length, rowLimitHit: false };
     kase.censusValidation = null;
     DB.pushNotif(kase, "Census uploaded", "info", `Census uploaded for <strong>${U.esc(kase.lead.companyName)}</strong> — ${rows.length} rows`, `#/case/${kase.id}/census-validation`);
-    U.toast(`Uploaded <strong>${rows.length}</strong> employee rows. Confirmation email sent to HR Contact and Sales Executive.`);
+    U.toast(`Generated a sample census of <strong>${rows.length}</strong> employee rows for demo purposes.`);
     App.render();
     location.hash = `#/case/${kase.id}/census-upload`;
   };
@@ -269,6 +308,8 @@
     const rec = DB.calc.reconciliation(kase);
     const displayRows = cv.rows.slice(0, 100);
     const canProceed = rec.withinTolerance || (kase.census && kase.census.hrConfirmedVariance);
+    const cur = U.currencyOf(kase);
+    const anomalies = AI.censusAnomalies(cv.rows);
 
     return `
     <div class="screen-head">
@@ -298,13 +339,17 @@
       <div class="card-link" data-action="download-census-errors" data-case="${kase.id}">Download errors →</div></div>
       <div class="card-body"><ul class="errlist">${cv.rows.filter(r => r.status === "Rejected").slice(0, 20).map(r => `<li><span>${U.esc(r.empId)} — ${U.esc(r.name || "(blank)")}</span><span style="color:var(--red)">${U.esc(r.reason)}</span></li>`).join("")}</ul></div>
     </div>` : ""}
+    ${anomalies.length ? `
+    <div class="card" style="margin:16px 0;"><div class="card-head"><div><div class="card-title">AI-Detected Anomalies</div><div class="card-sub">Informational only — does not block validation; worth a human glance before rating</div></div></div>
+      <div class="card-body"><ul class="errlist">${anomalies.map(a => `<li><span>${U.esc(a.detail)}</span><span class="cell-sub">${a.type === "duplicate" ? "Possible duplicate" : "Salary outlier"}</span></li>`).join("")}</ul></div>
+    </div>` : ""}
     <div class="card">
       <div class="card-head"><div><div class="card-title">Census Records</div><div class="card-sub">Showing first ${displayRows.length} of ${cv.rows.length} rows</div></div>
         <div class="card-link" data-action="download-census-full" data-case="${kase.id}">Export full list →</div></div>
       <div class="card-body"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Employee ID</th><th>Name</th><th>DOB</th><th class="num">Age</th><th>Gender</th><th class="num">Salary</th><th>Coverage</th><th>Status</th></tr></thead>
       <tbody>${displayRows.map(r => `<tr>
-        <td>${U.esc(r.empId)}</td><td>${U.esc(r.name || "(blank)")}</td><td>${U.fmtDate(r.dob)}</td><td class="num">${r.age}</td>
-        <td>${U.esc(r.gender)}</td><td class="num">${r.salary ? U.fmtINR(r.salary) : "—"}</td><td>${U.esc(r.coverage)}</td>
+        <td>${U.esc(r.empId)}</td><td>${U.esc(r.name || "(blank)")}</td><td>${U.fmtDate(r.dob)}</td><td class="num">${Number.isNaN(r.age) ? "—" : r.age}</td>
+        <td>${U.esc(r.gender)}</td><td class="num">${r.salary ? U.fmtMoney(r.salary, cur) : "—"}</td><td>${U.esc(r.coverage)}</td>
         <td>${U.pill(r.status)}${r.reason ? `<div class="cell-sub">${U.esc(r.reason)}</div>` : ""}</td>
       </tr>`).join("")}</tbody></table></div></div>
     </div>

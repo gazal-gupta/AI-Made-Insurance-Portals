@@ -80,17 +80,29 @@
     setTimeout(() => App.render(), 0);
   };
 
+  function priorityBadge(score) {
+    const cls = score >= 60 ? "pill-red" : score >= 35 ? "pill-amber" : "pill-gray";
+    return `<span class="pill ${cls}" title="AI priority score — deal size, staleness, proximity to close, underwriting risk">${score}</span>`;
+  }
+
   VIEWS.pipeline = function () {
     let rows = DB.CASES.slice();
     if (PF.stage !== "All") rows = rows.filter(c => c.stage === PF.stage);
     if (PF.owner !== "All") rows = rows.filter(c => c.salesExecutiveId === PF.owner);
     if (PF.product !== "All") rows = rows.filter(c => U.productsOf(c).includes(PF.product));
+    // AI-ranked by default: highest-urgency open cases surface first (deal size,
+    // staleness, proximity to close date, underwriting risk); closed cases sink to the end.
+    rows.sort((a, b) => {
+      const aOpen = !(a.issuance && a.issuance.finished), bOpen = !(b.issuance && b.issuance.finished);
+      if (aOpen !== bOpen) return aOpen ? -1 : 1;
+      return AI.priorityScore(b) - AI.priorityScore(a);
+    });
 
     const stageOpts = ["All"].concat(DB.STATUS_FLOW);
     const ownerOpts = ["All"].concat(DB.SALES_EXECS.filter(u => u.role === "Sales Executive").map(u => u.id));
 
     return `
-    <div class="page-head"><div><div class="page-title">Pipeline</div><div class="page-sub">All Employee Benefits opportunities — Sales Managers see the full team book</div></div></div>
+    <div class="page-head"><div><div class="page-title">Pipeline</div><div class="page-sub">All Employee Benefits opportunities, ranked by AI priority score — Sales Managers see the full team book</div></div></div>
     <div class="toolbar">
       <select class="select" name="stage" data-action="filter-pipeline">${stageOpts.map(s => `<option value="${s}" ${PF.stage === s ? "selected" : ""}>${s === "All" ? "All stages" : U.esc(s)}</option>`).join("")}</select>
       <select class="select" name="owner" data-action="filter-pipeline">${ownerOpts.map(id => `<option value="${id}" ${PF.owner === id ? "selected" : ""}>${id === "All" ? "All owners" : U.esc(U.salesExec(id).name)}</option>`).join("")}</select>
@@ -103,14 +115,15 @@
       <span class="chip-count">${rows.length} of ${DB.CASES.length} cases</span>
     </div>
     <div class="card"><div class="card-body">
-      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Company</th><th>Stage</th><th>Current Screen</th><th class="num">Premium</th><th>Owner</th></tr></thead>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Company</th><th>Stage</th><th>Current Screen</th><th class="num">Premium</th><th>Owner</th><th class="num">AI Priority</th></tr></thead>
       <tbody>${rows.map(k => `<tr class="rowlink" data-href="#/case/${k.id}">
         <td><div class="cell-main">${U.esc(k.lead.companyName)}</div><div class="cell-sub">${U.esc(k.id)} · ${U.esc(U.productsOf(k).join("+"))}</div></td>
         <td>${U.pill(k.stage)}</td>
         <td>${U.esc((J.stepMeta(J.currentStepKey(k)) || {}).label || "—")}</td>
         <td class="num">${U.fmtMoney(k.proposal ? k.proposal.netPremium : (k.opportunity ? k.opportunity.expectedPremium : null), U.currencyOf(k))}</td>
         <td>${U.esc(U.salesExec(k.salesExecutiveId).name)}</td>
-      </tr>`).join("") || `<tr><td colspan="5" class="empty">No cases match these filters.</td></tr>`}</tbody></table></div>
+        <td class="num">${priorityBadge(AI.priorityScore(k))}</td>
+      </tr>`).join("") || `<tr><td colspan="6" class="empty">No cases match these filters.</td></tr>`}</tbody></table></div>
     </div></div>`;
   };
 

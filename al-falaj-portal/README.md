@@ -74,6 +74,42 @@ Approval before they can be sent; a negotiated change that moves risk re-opens U
    an internal role to see Broker Book as a full relationship/commission overview across all
    three brokers instead.
 
+## Excel/CSV census upload
+
+Screen 6 (Employee Census Upload) accepts a **real** `.xlsx`/`.csv` file — parsed client-side
+with a vendored copy of [SheetJS](https://github.com/SheetJS/sheetjs) (`js/vendor/xlsx.mini.min.js`,
+Apache-2.0), not simulated. Column headers are matched flexibly (`js/xlsx-import.js`) — "Emp
+Name", "Full Name", and "Employee Name" all resolve to the same field — but a file missing a
+recognisable mandatory column (Employee ID, Name, DOB, or Gender) is still blocked, per the
+FRD's template-mismatch rule. Files over the configurable row limit (default 50,000) are
+truncated with a warning rather than silently dropped. No file handy? "Generate a sample
+census" on the same screen produces synthetic data instead.
+
+## AI features (Tier 1 — client-side, no backend)
+
+All of `js/ai.js` runs in the browser against data already on the case — no external model
+calls, nothing fabricated as ground truth. Every drafted output is explicitly labeled and
+meant for human review before it's submitted anywhere:
+
+- **Fuzzy duplicate-lead detection** (Screen 2) — a Levenshtein-based similarity check layered
+  on top of the FRD's exact-match rule, so "Al Bahja Power LLC" vs. "Al Bahja Power & Energy
+  L.L.C." still gets flagged for Sales Manager review.
+- **Census anomaly detection** (Screen 7) — informational, non-blocking flags for accepted rows
+  that look like the same person under two Employee IDs (name similarity + matching DOB), and
+  salary values that are statistical outliers (IQR method) versus the rest of the group.
+- **AI-drafted underwriting narrative** (Screen 11) — "Draft with AI" on the Underwriter
+  Comments field generates a starting rationale from the case's own risk score, loss ratio, FCL
+  breaches, and age profile; always prefixed `[AI-drafted — review before submitting]`.
+- **AI-drafted proposal cover note** (Screen 13) — same pattern, summarising the proposal terms
+  for the HR contact before it's sent.
+- **Smart prioritization** — a 0–100 urgency score (deal size, case staleness, proximity to
+  expected close, underwriting risk) ranks the Pipeline by default and breaks ties within each
+  High/Medium/Low tier of the Dashboard's Pending Tasks.
+- **AI Copilot** (topbar, all screens) — a role-aware panel that recombines existing computed
+  data (tasks, traffic light, reconciliation, commission) into a short briefing per acting
+  persona: urgent tasks for Sales, queue risk for Underwriters, reconciliation blockers for
+  Finance, commission summary for Brokers, approval/pipeline health for Business Head/Ops.
+
 ## Reference pages
 
 - **Underwriting Queue** / **Approvals** — cross-case worklists grouped by what needs action.

@@ -99,9 +99,15 @@
         <div class="card"><div class="card-head"><div class="card-title">Exclusions</div></div><div class="card-body" style="font-size:12.5px;color:var(--ink-2);">${EXCLUSIONS}</div></div>
       </div>
       <div class="stack">
+        ${!p.sentAt ? `<div class="card"><div class="card-head"><div><div class="card-title">Cover Note</div><div class="card-sub">Optional — included with the email when sent</div></div></div>
+          <div class="card-body">
+            <textarea class="input" id="proposalCoverNote" style="min-height:120px;" placeholder="Write a cover note, or draft one with AI…">${U.esc(p.coverNote || "")}</textarea>
+            <div class="hint" style="margin-top:6px;"><a data-action="ai-draft-cover-note" data-case="${kase.id}" style="cursor:pointer;">Draft with AI →</a> summarises this proposal for the HR contact — review and edit before sending.</div>
+          </div></div>` : ""}
         <div class="card"><div class="card-head"><div class="card-title">Send Proposal</div></div>
           <div class="card-body">
-            ${p.sentAt ? `<div class="brk-row"><span>Sent</span><span>${U.fmtDate(p.sentAt)}</span></div><div class="brk-row"><span>To</span><span>${U.esc(p.sentTo)}</span></div>` : ""}
+            ${p.sentAt ? `<div class="brk-row"><span>Sent</span><span>${U.fmtDate(p.sentAt)}</span></div><div class="brk-row"><span>To</span><span>${U.esc(p.sentTo)}</span></div>
+              ${p.coverNote ? `<div class="card-sub" style="margin-top:10px;white-space:pre-wrap;">${U.esc(p.coverNote)}</div>` : ""}` : ""}
             ${needsApprovalFirst ? `<div class="hint" style="color:var(--red);margin-bottom:10px;">Discount applied before sending — per the Approval Matrix this requires sign-off before the proposal can be sent.</div>
               <button type="button" class="btn btn-sm" data-action="nav" data-href="#/case/${kase.id}/approval">Route to Approval Workflow →</button>` : `
               <button type="button" class="btn btn-sm" data-action="generate-pdf" data-case="${kase.id}">Generate PDF</button>
@@ -130,8 +136,17 @@
 
   ACTIONS["generate-pdf"] = function (d) { U.downloadStub(`${U.kase(d.case).id}_Proposal.pdf`, "proposal PDF"); };
 
+  ACTIONS["ai-draft-cover-note"] = function (d) {
+    const kase = U.kase(d.case);
+    const el = document.getElementById("proposalCoverNote");
+    if (!el) return;
+    el.value = AI.draftProposalCoverNote(kase);
+  };
+
   ACTIONS["send-proposal"] = function (d) {
     const kase = U.kase(d.case);
+    const noteEl = document.getElementById("proposalCoverNote");
+    if (noteEl) kase.proposal.coverNote = noteEl.value.trim();
     kase.proposal.sentAt = DB.TODAY;
     kase.proposal.sentTo = kase.employer.hrContact.split("/")[0].trim() + (kase.brokerId ? " (HR); " + U.broker(kase.brokerId).name : " (HR)");
     if (kase.stage === "Underwriting" || DB.STATUS_FLOW.indexOf(kase.stage) < DB.STATUS_FLOW.indexOf("Proposal Shared")) kase.stage = "Proposal Shared";

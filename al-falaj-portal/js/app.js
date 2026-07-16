@@ -38,6 +38,7 @@
       el.classList.toggle("active", el.dataset.route === navKey));
     refreshBell();
     refreshUser();
+    refreshCopilot();
   }
 
   /* ---------- role switcher (demonstrates RBAC per FRD §10.3) ---------- */
@@ -97,7 +98,7 @@
   });
 
   document.getElementById("modalOverlay").addEventListener("click", e => { if (e.target.id === "modalOverlay") U.closeModal(); });
-  document.addEventListener("keydown", e => { if (e.key === "Escape") { U.closeModal(); closeSearch(); closeBell(); } });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { U.closeModal(); closeSearch(); closeBell(); closeCopilot(); } });
 
   /* ---------- global search ---------- */
   const searchInput = document.getElementById("globalSearch");
@@ -125,7 +126,8 @@
     const go = e.target.closest("[data-go]");
     if (go) { location.hash = go.dataset.go; searchInput.value = ""; closeSearch(); e.preventDefault(); return; }
     if (!e.target.closest("#searchWrap")) closeSearch();
-    if (!e.target.closest("#bellBtn, .bell-panel")) closeBell();
+    if (!e.target.closest("#bellBtn, #bellPanel")) closeBell();
+    if (!e.target.closest("#copilotBtn, #copilotPanel")) closeCopilot();
   });
 
   /* ---------- notifications ---------- */
@@ -145,6 +147,21 @@
       </div>`).join("") || `<div class="sr-empty">All clear — nothing needs attention.</div>`);
   }
   document.getElementById("bellBtn").addEventListener("click", () => { bellPanel.classList.toggle("open"); });
+
+  /* ---------- AI Copilot — role-aware briefing, recomputed from existing case
+     data on every render/persona switch (see js/ai.js: AI.copilotInsights) ---------- */
+  const copilotPanel = document.getElementById("copilotPanel");
+  function closeCopilot() { copilotPanel.classList.remove("open"); }
+  function refreshCopilot() {
+    const items = AI.copilotInsights(DB.CURRENT_USER);
+    copilotPanel.innerHTML = `<div class="bp-head">AI Copilot — ${U.esc(DB.CURRENT_USER.role)}</div>` +
+      items.map(it => `<div class="bp-item" data-go="${it.go}">
+        <div class="bp-ico info">&#10022;</div>
+        <div><div class="bp-txt">${U.esc(it.text)}</div></div>
+      </div>`).join("") +
+      `<div class="copilot-foot">AI-assisted — recombines data already on your cases; not a substitute for underwriting or compliance sign-off.</div>`;
+  }
+  document.getElementById("copilotBtn").addEventListener("click", () => { copilotPanel.classList.toggle("open"); });
 
   /* ---------- boot ---------- */
   window.App = { render, refreshBell };

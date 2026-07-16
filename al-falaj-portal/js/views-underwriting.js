@@ -88,7 +88,9 @@
               <div class="field-row"><label>Response from Sales</label><textarea class="input" id="uwResponseText" placeholder="Provide the requested information…"></textarea></div>
               <button type="button" class="btn btn-amber btn-sm" data-action="uw-respond" data-case="${kase.id}">Submit Response &amp; Return to Underwriter</button>
             ` : decided ? "" : `
-              <div class="field-row"><label>Underwriter Comments <span class="opt">optional</span></label><textarea class="input" id="uwComments" placeholder="Rationale for this decision…"></textarea></div>
+              <div class="field-row"><label>Underwriter Comments <span class="opt">optional</span></label>
+                <textarea class="input" id="uwComments" placeholder="Rationale for this decision…"></textarea>
+                <div class="hint"><a data-action="ai-draft-uw-comments" data-case="${kase.id}" style="cursor:pointer;">Draft with AI →</a> generates a starting point from the risk factors above — review and edit before submitting.</div></div>
               ${!isUW ? `<div class="hint" style="color:var(--red);margin-bottom:8px;">Only Underwriter / Senior Underwriter roles can record a decision. Switch role from the sidebar to demo this action.</div>` :
                 (tl === "Red" && role !== "Senior Underwriter") ? `<div class="hint" style="color:var(--red);margin-bottom:8px;">This is a Red case — Approve/Reject requires Senior Underwriter authority. You may still Refer or Request Information.</div>` : ""}
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -100,6 +102,13 @@
           </div></div>
       </div>
     </div>`;
+  };
+
+  ACTIONS["ai-draft-uw-comments"] = function (d) {
+    const kase = U.kase(d.case);
+    const el = document.getElementById("uwComments");
+    if (!el) return;
+    el.value = "[AI-drafted — review before submitting]\n" + AI.draftUnderwritingNarrative(kase);
   };
 
   ACTIONS["uw-decide"] = function (d) {

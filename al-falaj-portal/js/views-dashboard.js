@@ -32,7 +32,12 @@
     const omrOpen = open.filter(c => U.currencyOf(c) === "OMR");
     const pipelineValue = omrOpen.reduce((s, c) => s + (c.proposal ? c.proposal.netPremium : (c.opportunity ? c.opportunity.expectedPremium : 0)), 0);
     const tasks = J.deriveTasks();
-    const myTasks = tasks.filter(t => t.ownerId === DB.CURRENT_USER.id);
+    // Within each High/Medium/Low tier, rank by the AI priority score (deal size,
+    // staleness, proximity to close, underwriting risk) so the most urgent case in a
+    // tier surfaces first rather than in arbitrary case-creation order.
+    const PRI_ORDER = { High: 0, Medium: 1, Low: 2 };
+    const myTasks = tasks.filter(t => t.ownerId === DB.CURRENT_USER.id)
+      .sort((a, b) => (PRI_ORDER[a.priority] - PRI_ORDER[b.priority]) || (AI.priorityScore(U.kase(b.caseId)) - AI.priorityScore(U.kase(a.caseId))));
     const uwCount = DB.CASES.filter(c => J.currentStepKey(c) === "underwriting" && !J.isDone(c, "underwriting")).length;
     const issuedCount = DB.CASES.filter(c => c.issuance && c.issuance.finished).length;
 
@@ -177,6 +182,9 @@
     if (errors.length) { U.toast(errors.join("<br>"), "err"); return; }
 
     const dup = DB.CASES.find(c => c.lead.companyName.toLowerCase() === companyName.toLowerCase() && c.lead.mobile === mobile);
+    // AI-assisted layer on top of the exact-match rule: catches near-matches an exact
+    // company+mobile check would miss (e.g. "Al Bahja Power LLC" vs "Al Bahja Power & Energy L.L.C.").
+    const fuzzyDup = !dup ? AI.findFuzzyDuplicate(companyName, null) : null;
     const id = "EB-2026-0" + (100 + DB.CASES.length);
     // A Broker persona can co-create the lead (FRD §3), but the internal pipeline still
     // needs a Sales Executive owner — brokers don't carry one themselves.
@@ -188,7 +196,8 @@
         companyName, industry: fd.get("industry"), corporateSize: fd.get("corporateSize"),
         contactPerson: fd.get("contactPerson"), designation: fd.get("designation"), mobile, email: fd.get("email"),
         leadSource: fd.get("leadSource"), expectedEmployeeCount: Number(fd.get("expectedEmployeeCount")),
-        products, createdDate: DB.TODAY, duplicateFlag: !!dup
+        products, createdDate: DB.TODAY, duplicateFlag: !!dup || !!fuzzyDup,
+        aiDuplicateMatch: fuzzyDup ? { caseId: fuzzyDup.kase.id, companyName: fuzzyDup.kase.lead.companyName, score: fuzzyDup.score } : null
       },
       opportunity: null, employer: null, policyReq: null, census: null, censusValidation: null,
       benefitGMC: null, benefitGTL: null, prevInsurance: null, underwriting: null,
@@ -198,6 +207,7 @@
     DB.pushNotif(kase, "Lead created", "info", `Lead confirmation sent to <strong>${U.esc(kase.lead.contactPerson)}</strong> — ${U.esc(companyName)}`, `#/case/${id}/opportunity`);
     U.closeModal();
     if (dup) U.toast(`Lead saved, but flagged as a possible <strong>duplicate</strong> of ${U.esc(dup.id)} — routed to Sales Manager for review.`, "warn");
+    else if (fuzzyDup) U.toast(`Lead saved. AI flagged a <strong>${Math.round(fuzzyDup.score * 100)}% name match</strong> with existing case ${U.esc(fuzzyDup.kase.id)} (${U.esc(fuzzyDup.kase.lead.companyName)}) — routed to Sales Manager for review.`, "warn");
     else U.toast(`Lead <strong>${U.esc(companyName)}</strong> saved. Confirmation email sent.`);
     location.hash = "#/case/" + id;
   };

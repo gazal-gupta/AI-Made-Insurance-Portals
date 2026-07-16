@@ -145,8 +145,7 @@
         name: isBlank ? "" : `${first} ${last}`,
         dob, gender: female ? "Female" : "Male",
         salary,
-        coverage: rand() > 0.78 ? "Family Floater" : "Employee Only",
-        blankName: isBlank
+        coverage: rand() > 0.78 ? "Family Floater" : "Employee Only"
       });
     }
     return rows;
@@ -167,8 +166,10 @@
     const out = rows.map(r => {
       const age = computeAge(r.dob, asOf);
       let status = "Accepted", reason = "";
-      if (r.blankName) { status = "Rejected"; reason = "Employee Name is blank"; }
+      if (!r.name || !String(r.name).trim()) { status = "Rejected"; reason = "Employee Name is blank"; }
+      else if (!r.empId || !String(r.empId).trim()) { status = "Rejected"; reason = "Employee ID is blank"; }
       else if (seenIds.has(r.empId)) { status = "Rejected"; reason = "Duplicate Employee ID within file"; }
+      else if (Number.isNaN(age)) { status = "Rejected"; reason = "DOB could not be read — check the date format"; }
       else if (age < minAge || age > maxAge) { status = "Rejected"; reason = `Age out of range (${age}, band ${minAge}-${maxAge})`; }
       else if (salaryRequired && !r.salary) { status = "Rejected"; reason = "Salary mandatory for Salary Multiple / Shared contribution"; }
       seenIds.add(r.empId);
