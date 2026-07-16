@@ -19,7 +19,7 @@ without India being the visible default.
 ## Run it
 
 ```
-python -m http.server 4622 --directory al-falaj-portal
+python -m http.server 4622 --directory "BrokerPortal_Group_Medical & Term_Life"
 # then open http://localhost:4622
 ```
 
