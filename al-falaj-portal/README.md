@@ -19,7 +19,7 @@ without India being the visible default.
 ## Run it
 
 ```
-python -m http.server 4622 --directory eb-portal
+python -m http.server 4622 --directory al-falaj-portal
 # then open http://localhost:4622
 ```
 
