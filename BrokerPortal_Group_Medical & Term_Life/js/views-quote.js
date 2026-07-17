@@ -25,7 +25,7 @@
       <div class="screen-title">Premium Calculation &amp; Quote Comparison</div>
       <div class="screen-purpose">Generate and compare multiple rated quote options for employer review.</div>
     </div>
-    ${!uwOk ? `<div class="skip-note" style="border-color:var(--red);background:var(--red-tint);">Premium calculation is blocked until Underwriting status is Approve. Amber/Refer cases may receive an indicative, non-binding quote — see the Underwriting Workbench (Screen 11), which stays reachable while this screen is locked.</div>` : `
+    ${!uwOk ? `<div class="skip-note" style="border-color:var(--red);background:var(--red-tint);">Premium calculation is blocked until Underwriting status is Approve. Amber/Refer cases may receive an indicative, non-binding quote — see the Underwriting Workbench, which stays reachable while this screen is locked.</div>` : `
     <div class="quote-grid">
       ${kase.quotes.map(q => `
       <div class="quote-card ${kase.selectedQuoteId === q.id ? "selected" : ""}">
@@ -156,7 +156,7 @@
     kase.proposal.sentAt = DB.TODAY;
     kase.proposal.sentTo = kase.employer.hrContact.split("/")[0].trim() + (kase.brokerId ? " (HR); " + U.broker(kase.brokerId).name : " (HR)");
     if (kase.stage === "Underwriting" || DB.STATUS_FLOW.indexOf(kase.stage) < DB.STATUS_FLOW.indexOf("Proposal Shared")) kase.stage = "Proposal Shared";
-    DB.pushNotif(kase, "Proposal sent", "ok", `Proposal PDF sent for <strong>${U.esc(kase.lead.companyName)}</strong> with read-receipt tracking.`, `#/case/${kase.id}/proposal`);
+    DB.pushNotif(kase, "Proposal sent", "ok", `Proposal PDF sent for <strong>${U.esc(kase.lead.companyName)}</strong> to HR Contact${kase.brokerId ? " and Broker" : ""}, with read-receipt tracking.`, `#/case/${kase.id}/proposal`);
     U.toast("Proposal emailed to HR Contact" + (kase.brokerId ? ` and ${U.esc(U.broker(kase.brokerId).name)}` : "") + " with read receipt tracking.");
     App.render();
   };
@@ -192,7 +192,7 @@
           <textarea class="input" name="benefitChanges" placeholder="e.g. Increase OPD sub-limit from ${cur} 300 to ${cur} 500 per employee"></textarea></div>
         <div class="field-row full"><label class="toggle-row" style="text-transform:none;font-size:12.5px;font-weight:600;color:var(--ink);">
           <input type="checkbox" id="riskImpact"> This request moves Sum Insured, Cover, or Benefits beyond the originally approved Underwriting parameters</label>
-          <div class="hint">If checked, Resubmit will automatically re-trigger Underwriting review (Screen 11) before the quote can be regenerated.</div></div>
+          <div class="hint">If checked, Resubmit will automatically re-trigger an Underwriting review before the quote can be regenerated.</div></div>
         <div class="field-row full"><label>Sales Comments <span class="opt">visible to Sales and Management</span></label>
           <textarea class="input" name="salesComments">${U.esc(n.salesComments)}</textarea></div>
         <div class="field-row full"><label>UW Comments <span class="opt">${canEditUW ? "visible to Underwriting and Management" : "read-only to Sales"}</span></label>
@@ -206,7 +206,7 @@
         <button type="button" class="btn btn-sm" data-action="stub-whatsapp-negotiation" data-case="${kase.id}">Send via WhatsApp (prototype) →</button>
         <div class="hint">Lets the HR contact approve terms or submit missing census data directly in-chat. Simulated for this demo — needs a real WhatsApp Business API integration (out of scope for Section 1.4's current channel list).</div>
       </div>
-      <div class="screen-foot"><span class="page-meta">Resubmitting recalculates the quote at Screen 12</span>
+      <div class="screen-foot"><span class="page-meta">Resubmitting recalculates the quote on Premium Calculation &amp; Quote Comparison</span>
         <div class="right"><button type="button" class="btn btn-amber" data-action="resubmit-negotiation" data-case="${kase.id}">Resubmit Quote →</button></div>
       </div>
     </form>`;
@@ -284,7 +284,7 @@
 
     return `
     <div class="skip-note" style="background:var(--blue-tint);border-color:var(--blue-ink);color:var(--ink);margin-bottom:16px;">
-      This is a preview of the secure, employer-facing link generated from Screen 13. In production it would be sent directly to the HR contact — no login to this portal required.
+      This is a preview of the secure, employer-facing link generated from Proposal Review. In production it would be sent directly to the HR contact — no login to this portal required.
     </div>
     <div class="page-head"><div><div class="page-title">${U.esc(kase.lead.companyName)} — Interactive Proposal</div><div class="page-sub">Adjust the sliders below to see the premium impact instantly, within pre-approved underwriting guardrails.</div></div></div>
     <div class="two-col">

@@ -159,7 +159,7 @@
       U.toast("New Lead is enabled for Sales Executive and Broker roles only.", "err");
       return;
     }
-    U.openModal("New Lead — Screen 2", leadFormHtml(),
+    U.openModal("New Lead", leadFormHtml(),
       `<button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-amber" data-action="submit-new-lead">Save Lead</button>`);
   };
 
@@ -207,7 +207,7 @@
       quotes: [], selectedQuoteId: null, proposal: null, negotiation: null, approval: null, payment: null, issuance: null
     };
     DB.CASES.unshift(kase);
-    DB.pushNotif(kase, "Lead created", "info", `Lead confirmation sent to <strong>${U.esc(kase.lead.contactPerson)}</strong> — ${U.esc(companyName)}`, `#/case/${id}/opportunity`);
+    DB.pushNotif(kase, "Lead created", "info", `Lead confirmation sent to <strong>${U.esc(kase.lead.contactPerson)}</strong> — ${U.esc(companyName)}. Sales Manager alerted.`, `#/case/${id}/opportunity`);
     U.closeModal();
     if (dup) U.toast(`Lead saved, but flagged as a possible <strong>duplicate</strong> of ${U.esc(dup.id)} — routed to Sales Manager for review.`, "warn");
     else if (fuzzyDup) U.toast(`Lead saved. AI flagged a <strong>${Math.round(fuzzyDup.score * 100)}% name match</strong> with existing case ${U.esc(fuzzyDup.kase.id)} (${U.esc(fuzzyDup.kase.lead.companyName)}) — routed to Sales Manager for review.`, "warn");
@@ -244,7 +244,7 @@
           <div><div class="doc-name">${U.esc(l.lead.companyName)}</div><div class="doc-meta">Ready for census upload</div></div>
         </label>`).join("")}</div>`
       : `<div class="empty">No opportunities are currently ready for census upload.</div>`;
-    U.openModal("Upload Census — shortcut to Screen 6", body,
+    U.openModal("Upload Employee Census", body,
       ready.length ? `<button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-amber" data-action="pick-census-shortcut">Continue</button>` : `<button class="btn btn-ghost" data-action="close-modal">Close</button>`);
   };
   ACTIONS["pick-census-shortcut"] = function () {
@@ -255,7 +255,7 @@
   };
 
   ACTIONS["renewal-stub"] = function (d) {
-    U.toast(`Renewal journey for <strong>${U.esc(d.company)}</strong> is out of scope for this assisted new-business journey — see FRD §1.2.`, "warn");
+    U.toast(`Renewal journey for <strong>${U.esc(d.company)}</strong> is out of scope for this assisted new-business journey.`, "warn");
   };
 
   /* ---------- Screen 3: Opportunity ---------- */
@@ -312,7 +312,7 @@
             <div class="dz-title">Click to attach a file</div><div class="dz-sub">${o && o.attachments.length ? o.attachments.length + " file(s) attached" : "No files attached yet"}</div>
           </div></div>
       </div>
-      <div class="skip-note">Business rule: stage cannot move to <strong>Quote</strong> or beyond until Employer Profile (Screen 4) and Policy Requirements (Screen 5) are marked complete.</div>
+      <div class="skip-note">Business rule: stage cannot move to <strong>Quote</strong> or beyond until the Employer Profile and Policy Requirements screens are marked complete.</div>
       <div class="screen-foot">
         <span class="page-meta">${kase.brokerId ? "Broker: " + U.esc(U.broker(kase.brokerId).name) : "Direct business"}</span>
         <div class="right"><button type="button" class="btn btn-amber" data-action="save-opportunity" data-case="${kase.id}">Save &amp; Continue →</button></div>

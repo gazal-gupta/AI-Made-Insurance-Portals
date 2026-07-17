@@ -79,7 +79,7 @@
     { condition: "Discount up to 5%", approvers: "Sales Manager", notes: "Sales Executive submits; Sales Manager approves within workflow.", sla: "1 business day" },
     { condition: "Discount 5% to 10%", approvers: "Sales Manager + Business Head", notes: "Escalated automatically beyond Sales Manager's delegated authority.", sla: "2 business days" },
     { condition: "Discount above 10%", approvers: "Business Head + Finance Head", notes: "Requires joint sign-off; cannot be approved by Sales Manager alone.", sla: "3 business days" },
-    { condition: "Loss Ratio above 65% (renewal/portability)", approvers: "Underwriter + Senior Underwriter", notes: "Auto-referred from Screen 11 traffic-light logic.", sla: "2 business days" },
+    { condition: "Loss Ratio above 65% (renewal/portability)", approvers: "Underwriter + Senior Underwriter", notes: "Auto-referred from the Underwriting Workbench's traffic-light logic.", sla: "2 business days" },
     { condition: "FCL breach (GTL individual member)", approvers: "Underwriter (Medical UW)", notes: "Individual member requires medical underwriting outcome before group approval.", sla: "As per medical UW SLA" },
     { condition: "Any Red traffic-light case", approvers: "Senior Underwriter", notes: "Sales Executives are not authorised to action Red cases.", sla: "2 business days" },
     { condition: "Standard proposal, no discount, Green UW", approvers: "Sales Manager only", notes: "Fast-track approval; Finance sign-off remains mandatory before payment stage.", sla: "Same business day" }

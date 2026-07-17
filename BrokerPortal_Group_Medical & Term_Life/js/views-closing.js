@@ -74,7 +74,7 @@
       U.toast(`${U.esc(step.role)} approved. Task routed to ${U.esc(next.role)}.`);
     } else {
       kase.stage = "Approved";
-      DB.pushNotif(kase, "Final approval granted", "ok", `All approvals complete for <strong>${U.esc(kase.lead.companyName)}</strong>.`, `#/case/${kase.id}/approval`);
+      DB.pushNotif(kase, "Final approval granted", "ok", `All approvals complete for <strong>${U.esc(kase.lead.companyName)}</strong>. Sales Executive notified.`, `#/case/${kase.id}/approval`);
       U.toast("Final approval granted. Sales Executive notified.");
     }
     App.render();
@@ -119,7 +119,7 @@
     // days" — fired once (not on every render) the first time the SLA is actually breached.
     if (p && p.status !== "Received" && -U.daysUntil(p.submittedAt) > 2 && !p.slaBreachNotified) {
       p.slaBreachNotified = true;
-      DB.pushNotif(kase, "Payment reconciliation overdue", "warn", `Payment for <strong>${U.esc(kase.lead.companyName)}</strong> has been unreconciled beyond the 2-business-day SLA.`, `#/case/${kase.id}/payment`);
+      DB.pushNotif(kase, "Payment reconciliation overdue", "warn", `Payment for <strong>${U.esc(kase.lead.companyName)}</strong> has been unreconciled beyond the 2-business-day SLA. Finance alerted.`, `#/case/${kase.id}/payment`);
     }
     const cur = U.currencyOf(kase);
     const invoiceNo = p ? p.invoiceNo : `INV-2026-0${100 + DB.CASES.indexOf(kase)}`;
@@ -147,6 +147,11 @@
     ${!p ? `
     <form id="screenForm">
       <div class="screen-grid">
+        <div class="field-row full"><label class="toggle-row" style="text-transform:none;font-size:12.5px;font-weight:600;color:var(--ink);">
+          <input type="checkbox" id="isPartialPayment" data-cond-target="#amountPaidRow" data-cond-value="on"> This is a partial payment</label>
+          <div class="hint">Partial payments, where permitted commercially, require explicit Finance sign-off before proceeding.</div></div>
+        <div class="field-row" id="amountPaidRow" style="display:none;"><label>Amount Paid <span class="req">*</span> <span class="opt">${cur} — of ${U.fmtMoney(total, cur)} total</span></label>
+          <input class="input" name="amountPaid" type="number" min="0" max="${total}"></div>
         <div class="field-row full"><label>Payment Mode <span class="req">*</span></label>
           <div class="radio-row">${modes.map((m, i) => `<label class="radio-opt"><input type="radio" name="mode" value="${m}" ${i === 0 ? "checked" : ""}> ${m}</label>`).join("")}</div></div>
         <div class="field-row"><label>Transaction / Cheque Number <span class="req">*</span></label><input class="input" name="txnNumber" placeholder="${txnHint}"></div>
@@ -161,9 +166,16 @@
       <div class="brk-row"><span>Payment Mode</span><span>${U.esc(p.mode)}</span></div>
       <div class="brk-row"><span>Transaction Number</span><span>${U.esc(p.txnNumber)}</span></div>
       <div class="brk-row"><span>Submitted</span><span>${U.fmtDate(p.submittedAt)}</span></div>
+      ${p.isPartial ? `<div class="brk-row"><span>Amount Paid</span><span>${U.fmtMoney(p.amountPaid, cur)} of ${U.fmtMoney(total, cur)} <span class="cell-sub">(${U.fmtMoney(total - p.amountPaid, cur)} outstanding)</span></span></div>` : ""}
       <div class="brk-row"><span>Status</span>${U.pill(p.status)}</div>
     </div></div>
-    ${p.status !== "Received" ? `
+    ${p.isPartial && !p.partialApproved ? `
+      <div class="skip-note" style="border-color:var(--amber);background:var(--amber-tint);">
+        <strong>Partial payment — Finance sign-off required</strong> before reconciliation can proceed, per business rule.
+      </div>
+      <div class="hint" style="margin:10px 0;">${DB.CURRENT_USER.role !== "Finance" ? "Only Finance can sign off on a partial payment. Switch role from the sidebar to demo this action." : ""}</div>
+      <button type="button" class="btn btn-sm" data-action="approve-partial-payment" data-case="${kase.id}" ${DB.CURRENT_USER.role !== "Finance" ? "disabled" : ""}>Sign Off on Partial Payment (Finance)</button>
+    ` : p.status !== "Received" ? `
       <div class="skip-note">Policy Issuance cannot be initiated until payment is reconciled and marked Received by Finance.</div>
       ${-U.daysUntil(p.submittedAt) > 2 ? `<div class="skip-note" style="border-color:var(--red);background:var(--red-tint);">
         <strong>Reconciliation overdue:</strong> submitted ${U.dueLabel(p.submittedAt)}, exceeding the 2-business-day SLA. Finance has been alerted.
@@ -180,13 +192,26 @@
     const kase = U.kase(d.case);
     const fd = new FormData(document.getElementById("screenForm"));
     if (!fd.get("txnNumber")) { U.toast("Transaction / Cheque Number is required.", "err"); return; }
+    const total = kase.proposal.premium - kase.proposal.discount + kase.proposal.taxes;
+    const isPartial = document.getElementById("isPartialPayment").checked;
+    const amountPaid = isPartial ? Number(fd.get("amountPaid")) || 0 : total;
+    if (isPartial && !(amountPaid > 0 && amountPaid < total)) { U.toast("Amount Paid must be greater than 0 and less than the total for a partial payment.", "err"); return; }
     kase.payment = {
       invoiceNo: `INV-2026-0${100 + DB.CASES.indexOf(kase)}`, premium: kase.proposal.premium - kase.proposal.discount,
-      gst: kase.proposal.taxes, total: kase.proposal.premium - kase.proposal.discount + kase.proposal.taxes,
+      gst: kase.proposal.taxes, total,
       mode: fd.get("mode"), txnNumber: fd.get("txnNumber"), proofFile: "payment_proof.pdf",
-      status: "Submitted", submittedAt: DB.TODAY
+      status: "Submitted", submittedAt: DB.TODAY, isPartial, amountPaid, partialApproved: false
     };
-    U.toast("Payment submitted — routed to Finance for reconciliation.");
+    U.toast(isPartial ? "Partial payment submitted — requires explicit Finance sign-off before reconciliation." : "Payment submitted — routed to Finance for reconciliation.");
+    App.render();
+  };
+
+  ACTIONS["approve-partial-payment"] = function (d) {
+    const kase = U.kase(d.case);
+    kase.payment.partialApproved = true;
+    kase.payment.partialApprovedBy = DB.CURRENT_USER.name;
+    kase.payment.partialApprovedAt = DB.TODAY;
+    U.toast("Partial payment signed off by Finance. Reconciliation can now proceed.");
     App.render();
   };
 
@@ -195,7 +220,7 @@
     kase.payment.status = "Received";
     kase.payment.reconciledAt = DB.TODAY;
     kase.stage = "Paid";
-    DB.pushNotif(kase, "Payment received", "ok", `Payment received and reconciled for <strong>${U.esc(kase.lead.companyName)}</strong>.`, `#/case/${kase.id}/payment`);
+    DB.pushNotif(kase, "Payment received", "ok", `Payment received and reconciled for <strong>${U.esc(kase.lead.companyName)}</strong>. Acknowledgement sent to HR Contact and Finance.`, `#/case/${kase.id}/payment`);
     U.toast("Payment marked Received. Acknowledgement sent to HR Contact and Finance.");
     App.render();
   };
@@ -257,7 +282,7 @@
     const kase = U.kase(d.case);
     // Notification Matrix: "Policy issued → HR Contact; Broker; Finance; Operations"
     const recipients = "HR Contact" + (kase.brokerId ? `, ${U.esc(U.broker(kase.brokerId).name)},` : ",") + " Finance and Operations";
-    DB.pushNotif(kase, "Policy issued", "ok", `Policy documents sent for <strong>${U.esc(kase.lead.companyName)}</strong>.`, `#/case/${kase.id}/issuance`);
+    DB.pushNotif(kase, "Policy issued", "ok", `Policy documents sent for <strong>${U.esc(kase.lead.companyName)}</strong> to ${recipients}.`, `#/case/${kase.id}/issuance`);
     U.toast(`Policy documents emailed to ${recipients}.`);
   };
 

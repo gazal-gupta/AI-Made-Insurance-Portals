@@ -37,7 +37,7 @@
           <input class="input" name="deductible" type="number" min="0" value="${b && b.deductible ? b.deductible : ""}"></div>
         <div class="field-row"><label>Corporate Buffer <span class="opt">optional, ${cur} — pooled top-up</span></label>
           <input class="input" name="corporateBuffer" type="number" min="0" value="${b && b.corporateBuffer ? b.corporateBuffer : ""}">
-          <div class="hint">If selected, requires a separate buffer premium calculation at Screen 12.</div></div>
+          <div class="hint">If selected, requires a separate buffer premium calculation at Premium Calculation &amp; Quote Comparison.</div></div>
         <div class="field-row"><label>PED Waiting Period <span class="req">*</span></label>
           <select class="select" name="pedWaived">
             <option value="true" ${pedAutoWaive || (b && b.pedWaived) ? "selected" : ""}>Day 1 (waived)</option>
@@ -103,8 +103,8 @@
         <div class="field-row"><label class="toggle-row" style="text-transform:none;font-size:12.5px;font-weight:600;color:var(--ink);"><input type="checkbox" name="accidentalDeath" ${g && g.accidentalDeath ? "checked" : ""}> Accidental Death rider</label></div>
         <div class="field-row"><label class="toggle-row" style="text-transform:none;font-size:12.5px;font-weight:600;color:var(--ink);"><input type="checkbox" name="permanentDisability" ${g && g.permanentDisability ? "checked" : ""}> Permanent Disability rider</label></div>
       </div>
-      ${missingSalary > 0 ? `<div class="skip-note" style="border-color:var(--red);background:var(--red-tint);">${missingSalary} accepted employee(s) are missing Salary, required once Cover Type is Salary Multiple. Return to Census Validation (Screen 7) to correct.</div>` : ""}
-      <div class="skip-note">Business rule: any member whose calculated cover exceeds the Free Cover Limit for the group's size and industry is automatically flagged for mandatory medical underwriting at Screen 11.</div>
+      ${missingSalary > 0 ? `<div class="skip-note" style="border-color:var(--red);background:var(--red-tint);">${missingSalary} accepted employee(s) are missing Salary, required once Cover Type is Salary Multiple. Return to Census Validation to correct.</div>` : ""}
+      <div class="skip-note">Business rule: any member whose calculated cover exceeds the Free Cover Limit for the group's size and industry is automatically flagged for mandatory medical underwriting at the Underwriting Workbench.</div>
       <div class="screen-foot"><span></span>
         <div class="right"><button type="button" class="btn btn-amber" data-action="save-benefit-gtl" data-case="${kase.id}">Save &amp; Continue →</button></div>
       </div>
@@ -175,7 +175,7 @@
         <div class="brk-row"><span>Loss Ratio</span><span>${DB.calc.lossRatio(p) == null ? "—" : DB.calc.lossRatio(p) + "%"}</span></div>
         <div class="brk-row"><span>Claim Ratio</span><span>${p.claimCount ? Math.round(p.claimCount / p.livesCovered * 1000) / 10 + "%" : "—"}</span></div>
       </div></div>` : ""}
-      <div class="skip-note">Business rule: Loss Ratio above 65% (default threshold) auto-routes the case to manual underwriting referral at Screen 11.</div>
+      <div class="skip-note">Business rule: Loss Ratio above 65% (default threshold) auto-routes the case to manual underwriting referral at the Underwriting Workbench.</div>
       <div class="screen-foot"><span></span>
         <div class="right"><button type="button" class="btn btn-amber" data-action="save-previous-insurance" data-case="${kase.id}">Save &amp; Continue →</button></div>
       </div>

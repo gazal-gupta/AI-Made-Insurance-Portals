@@ -238,7 +238,7 @@
   /* ---------- Playbook (Approval Matrix / Notification Matrix / Key Documents / Status Flow reference) ---------- */
   VIEWS.playbook = function () {
     return `
-    <div class="page-head"><div><div class="page-title">Playbook</div><div class="page-sub">Approval Matrix, Notification Matrix and reference data — FRD Sections 6–9</div></div></div>
+    <div class="page-head"><div><div class="page-title">Playbook</div><div class="page-sub">Approval Matrix, Notification Matrix and reference data</div></div></div>
 
     <div class="card" style="margin-bottom:16px;">
       <div class="card-head"><div><div class="card-title">Approval Matrix</div><div class="card-sub">Illustrative delegation-of-authority thresholds — confirm against the insurer's actual policy before build.</div></div></div>

@@ -17,25 +17,25 @@
     const display = masked && value ? U.maskId(value) : value;
     return `<div class="field-row"><label>${label} ${required ? '<span class="req">*</span>' : '<span class="opt">optional</span>'}</label>
           <input class="input" name="${name}" ${placeholder ? `placeholder="${placeholder}"` : ""} value="${U.esc(display || "")}" ${masked ? "readonly" : ""}>
-          ${masked ? `<div class="hint">Masked for this role — NFR 10.3 data minimization.</div>` : ""}</div>`;
+          ${masked ? `<div class="hint">Masked for this role — data minimization.</div>` : ""}</div>`;
   }
   function identityFieldsHtml(geo, e) {
     const masked = U.piiMasked();
     if (geo === "India") return `
         ${idField("PAN", "pan", e ? e.pan : "", "AAAAA9999A", true, masked)}
-        <div class="hint" style="margin-top:-10px;">5 letters, 4 digits, 1 letter. Format-validated only in this release (NSDL verification is Phase 2).</div>
+        <div class="hint" style="margin-top:-10px;">5 letters, 4 digits, 1 letter. Format-validated only in this release (registry verification is a future integration).</div>
         ${idField("GST", "gst", e ? e.gst : "", "15-character GSTIN", false, masked)}`;
     if (geo === "UAE") return `
         ${idField("Trade License Number", "tradeLicense", e ? e.tradeLicense : "", null, true, masked)}
-        <div class="hint" style="margin-top:-10px;">Geography: UAE — identity format parameterised per FRD §1.4 (PAN/GST substituted with Trade License/VAT TRN).</div>
+        <div class="hint" style="margin-top:-10px;">UAE employers identify with a Trade License Number and VAT TRN in place of CR/VATIN.</div>
         ${idField("VAT TRN", "vatTrn", e ? e.vatTrn : "", "100xxxxxxxxxxxx", false, masked)}`;
     if (geo === "Qatar") return `
         ${idField("Commercial Registration (CR) Number", "crNumberQatar", e ? e.crNumberQatar : "", null, true, masked)}
-        <div class="hint" style="margin-top:-10px;">Geography: Qatar — identity format parameterised per FRD §1.4 (PAN/GST substituted with CR/Tax Card). Qatar has not yet implemented VAT under the GCC framework.</div>
+        <div class="hint" style="margin-top:-10px;">Qatar has not yet implemented VAT under the GCC framework, so no VAT number is captured here.</div>
         ${idField("Tax Card Number", "taxCard", e ? e.taxCard : "", "GTA-xxxxxxx", false, masked)}`;
     return `
         ${idField("Commercial Registration (CR) Number", "crNumber", e ? e.crNumber : "", null, true, masked)}
-        <div class="hint" style="margin-top:-10px;">Geography: Oman — identity format parameterised per FRD §1.4 (PAN/GST substituted with CR/VATIN).</div>
+        <div class="hint" style="margin-top:-10px;">Oman employers identify with a CR Number and VATIN.</div>
         ${idField("VATIN", "vatin", e ? e.vatin : "", "OM1xxxxxxxxxxx", false, masked)}`;
   }
 
@@ -67,7 +67,7 @@
           <input class="input" name="annualTurnover" type="number" min="0" value="${e ? e.annualTurnover : ""}"></div>
         <div class="field-row"><label>Employee Count <span class="req">*</span></label>
           <input class="input" name="employeeCount" type="number" min="1" value="${e ? e.employeeCount : kase.lead.expectedEmployeeCount}">
-          <div class="hint">Becomes the reference count for census reconciliation at Screen 7.</div></div>
+          <div class="hint">Becomes the reference count for census reconciliation during Census Validation.</div></div>
         <div class="field-row"><label>Payroll Frequency <span class="req">*</span></label>
           <select class="select" name="payrollFrequency">
             ${["Monthly", "Fortnightly", "Weekly"].map(f => `<option ${(e ? e.payrollFrequency : "Monthly") === f ? "selected" : ""}>${f}</option>`).join("")}</select></div>
@@ -162,7 +162,7 @@
       <div class="screen-grid">
         <div class="field-row full"><label>Products <span class="req">*</span></label>
           <div class="check-row">${["GMC", "GTL"].map(pr => `<label class="check-opt"><input type="checkbox" name="products" value="${pr}" ${products.includes(pr) ? "checked" : ""} disabled> ${pr === "GMC" ? "Group Medical" : "Group Term Life"}</label>`).join("")}</div>
-          <div class="hint">Carried forward from Opportunity — edit on Screen 3 if this needs to change.</div></div>
+          <div class="hint">Carried forward from the Opportunity screen — edit there if this needs to change.</div></div>
         <div class="field-row"><label>Policy Effective Date <span class="req">*</span></label>
           <input class="input" name="effectiveDate" type="date" min="${minEff}" value="${p ? p.effectiveDate : minEff}">
           <div class="hint">Cannot be earlier than today + 7 days (configurable minimum lead time).</div></div>
@@ -170,7 +170,7 @@
           <select class="select" name="duration"><option ${(!p || p.duration === "12 months") ? "selected" : ""}>12 months</option><option ${p && p.duration === "Co-terminus" ? "selected" : ""}>Co-terminus</option></select></div>
         <div class="field-row full"><label>Policy Type <span class="req">*</span></label>
           <div class="radio-row">${["Fresh", "Portability", "Migration"].map(t => `<label class="radio-opt"><input type="radio" name="policyType" value="${t}" ${(p ? p.policyType : "Fresh") === t ? "checked" : ""}> ${t}</label>`).join("")}</div>
-          <div class="hint">Portability or Migration makes Screen 10 (Previous Insurance Experience) mandatory rather than optional.</div></div>
+          <div class="hint">Portability or Migration makes Previous Insurance Experience mandatory rather than optional.</div></div>
         <div class="field-row full"><label>Employer Contribution <span class="req">*</span></label>
           <div class="radio-row">
             <label class="radio-opt"><input type="radio" name="employerContribution" value="100% Employer-funded" data-cond-target="#splitRow" data-cond-value="__never__" ${(!p || p.employerContribution === "100% Employer-funded") ? "checked" : ""}> 100% Employer-funded</label>
@@ -308,7 +308,7 @@
         totalParsed: result.totalParsed, rowLimitHit: result.rowLimitHit, detectedColumns: result.detectedColumns
       };
       kase.censusValidation = null;
-      DB.pushNotif(kase, "Census uploaded", "info", `Census uploaded for <strong>${U.esc(kase.lead.companyName)}</strong> — ${result.rows.length} rows`, `#/case/${kase.id}/census-validation`);
+      DB.pushNotif(kase, "Census uploaded", "info", `Census uploaded for <strong>${U.esc(kase.lead.companyName)}</strong> — ${result.rows.length} rows. Confirmation sent to HR Contact and Sales Executive.`, `#/case/${kase.id}/census-validation`);
       U.toast(result.rowLimitHit
         ? `Uploaded <strong>${result.rows.length.toLocaleString()}</strong> of ${result.totalParsed.toLocaleString()} rows — row limit (${CENSUS_ROW_LIMIT.toLocaleString()}) reached; remaining rows were not imported.`
         : `Uploaded <strong>${result.rows.length}</strong> employee rows from <strong>${U.esc(file.name)}</strong>. Confirmation email sent to HR Contact and Sales Executive.`,
@@ -332,7 +332,7 @@
     });
     kase.census = { fileName: `${kase.lead.companyName.replace(/\s+/g, "_")}_Census_Sample.xlsx`, uploadedAt: DB.TODAY, rows, hrConfirmedVariance: false, totalParsed: rows.length, rowLimitHit: false };
     kase.censusValidation = null;
-    DB.pushNotif(kase, "Census uploaded", "info", `Census uploaded for <strong>${U.esc(kase.lead.companyName)}</strong> — ${rows.length} rows`, `#/case/${kase.id}/census-validation`);
+    DB.pushNotif(kase, "Census uploaded", "info", `Census uploaded for <strong>${U.esc(kase.lead.companyName)}</strong> — ${rows.length} rows. Confirmation sent to HR Contact and Sales Executive.`, `#/case/${kase.id}/census-validation`);
     U.toast(`Generated a sample census of <strong>${rows.length}</strong> employee rows for demo purposes.`);
     App.render();
     location.hash = `#/case/${kase.id}/census-upload`;
@@ -350,7 +350,7 @@
   /* ---------- Screen 7: Census Validation ---------- */
   SCREENS["census-validation"] = function (kase) {
     const cv = kase.censusValidation;
-    if (!cv) return `<div class="empty"><div class="big">No validation run yet</div>Return to Screen 6 and click Validate.</div>`;
+    if (!cv) return `<div class="empty"><div class="big">No validation run yet</div>Return to Employee Census Upload and click Validate.</div>`;
     const rec = DB.calc.reconciliation(kase);
     const displayRows = cv.rows.slice(0, 100);
     const canProceed = rec.withinTolerance || (kase.census && kase.census.hrConfirmedVariance);
