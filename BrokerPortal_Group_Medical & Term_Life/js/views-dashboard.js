@@ -42,10 +42,12 @@
     const issuedCount = DB.CASES.filter(c => c.issuance && c.issuance.finished).length;
 
     // Pipeline visibility is role-scoped (FRD Screen 1 business rule): Sales Executives see
-    // their own book; a Broker persona sees the cases they introduced instead.
+    // their own book; Sales Managers see their team's (full) book; a Broker persona sees
+    // the cases they introduced instead.
     const isBroker = DB.CURRENT_USER.role === "Broker";
+    const isSalesManager = DB.CURRENT_USER.role === "Sales Manager";
     const myPipeline = DB.CASES.filter(c => !(c.issuance && c.issuance.finished) &&
-      (isBroker ? c.brokerId === DB.CURRENT_USER.brokerId : c.salesExecutiveId === DB.CURRENT_USER.id))
+      (isBroker ? c.brokerId === DB.CURRENT_USER.brokerId : isSalesManager ? true : c.salesExecutiveId === DB.CURRENT_USER.id))
       .slice(0, 7);
 
     const canCreateLead = ["Sales Executive", "Broker"].includes(DB.CURRENT_USER.role);
@@ -69,7 +71,7 @@
 
     <div class="dash-grid">
       <div class="card">
-        <div class="card-head"><div><div class="card-title">${isBroker ? "Cases You've Introduced" : "My Pipeline"}</div><div class="card-sub">${isBroker ? "Role-scoped to business placed through you — see Broker Book for commission" : "Role-scoped to your book — Sales Managers see the full team book"}</div></div>
+        <div class="card-head"><div><div class="card-title">${isBroker ? "Cases You've Introduced" : isSalesManager ? "Team Pipeline" : "My Pipeline"}</div><div class="card-sub">${isBroker ? "Role-scoped to business placed through you — see Broker Book for commission" : isSalesManager ? "Full team book" : "Role-scoped to your own book"}</div></div>
           <div class="card-link" data-href="${isBroker ? "#/broker-book" : "#/pipeline"}">View all →</div></div>
         <div class="card-body">
           <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Company</th><th>Stage</th><th class="num">Premium</th><th>Owner</th></tr></thead>
@@ -81,11 +83,12 @@
         <div class="card">
           <div class="card-head"><div class="card-title">Pending Tasks</div></div>
           <div class="card-body">
-            <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Task</th><th>Priority</th></tr></thead>
+            <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Task</th><th>Due</th><th>Priority</th></tr></thead>
             <tbody>${myTasks.slice(0, 6).map(t => `<tr class="${t.actionable ? "rowlink" : ""}" ${t.actionable ? `data-href="${t.go}"` : ""}>
               <td><div class="cell-main">${U.esc(t.task)}</div><div class="cell-sub">${U.esc(t.company)}</div></td>
+              <td class="${U.daysUntil(t.dueDate) <= 2 ? "due-hot" : ""}">${U.dueLabel(t.dueDate)}</td>
               <td>${U.pill(t.priority === "High" ? "Rejected" : t.priority === "Medium" ? "Pending" : "Qualified")}</td>
-            </tr>`).join("") || `<tr><td colspan="2" class="empty">All clear — nothing pending.</td></tr>`}</tbody></table></div>
+            </tr>`).join("") || `<tr><td colspan="3" class="empty">All clear — nothing pending.</td></tr>`}</tbody></table></div>
             <div class="kpi-note" style="margin-top:10px;">Daily digest emailed with tasks and renewals due within 7 days.</div>
           </div>
         </div>
@@ -260,6 +263,7 @@
     const o = kase.opportunity;
     const products = o ? o.products : kase.lead.products;
     const canQuote = !!(kase.employer && kase.policyReq);
+    const canReassignOwner = DB.CURRENT_USER.role === "Sales Manager";
     const stageOpts = ["Qualification", "Needs Analysis", "Quote", "Negotiation", "Closed Won", "Closed Lost"];
     const suggestedName = `${kase.lead.companyName} - ${products.join("/")} - 2026`;
     const winProb = AI.leadWinProbability(kase);
@@ -280,8 +284,9 @@
         <div class="field-row full"><label>Opportunity Name <span class="req">*</span></label>
           <input class="input" name="name" value="${U.esc(o ? o.name : suggestedName)}"></div>
         <div class="field-row"><label>Sales Owner <span class="req">*</span></label>
-          <select class="select" name="salesOwnerId">${DB.SALES_EXECS.filter(u => u.role === "Sales Executive").map(u => `<option value="${u.id}" ${((o ? o.salesOwnerId : kase.salesExecutiveId) === u.id) ? "selected" : ""}>${U.esc(u.name)}</option>`).join("")}</select>
-          <div class="hint">Defaults to logged-in user; reassignable by Sales Manager.</div></div>
+          <select class="select" name="salesOwnerId" ${canReassignOwner ? "" : "disabled"}>${DB.SALES_EXECS.filter(u => u.role === "Sales Executive").map(u => `<option value="${u.id}" ${((o ? o.salesOwnerId : kase.salesExecutiveId) === u.id) ? "selected" : ""}>${U.esc(u.name)}</option>`).join("")}</select>
+          ${canReassignOwner ? "" : `<input type="hidden" name="salesOwnerId" value="${U.esc(o ? o.salesOwnerId : kase.salesExecutiveId)}">`}
+          <div class="hint">Defaults to logged-in user; reassignable by Sales Manager only.</div></div>
         <div class="field-row"><label>Expected Premium (${U.currencyOf(kase)}) <span class="req">*</span></label>
           <input class="input" name="expectedPremium" type="number" min="1" value="${o ? o.expectedPremium : ""}"></div>
         <div class="field-row"><label>Expected Close Date <span class="req">*</span></label>

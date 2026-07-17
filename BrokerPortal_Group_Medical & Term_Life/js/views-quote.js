@@ -25,7 +25,7 @@
       <div class="screen-title">Premium Calculation &amp; Quote Comparison</div>
       <div class="screen-purpose">Generate and compare multiple rated quote options for employer review.</div>
     </div>
-    ${!uwOk ? `<div class="skip-note" style="border-color:var(--red);background:var(--red-tint);">Premium calculation is blocked until Underwriting status is Approve. Amber/Refer cases may receive an indicative, non-binding quote outside this workflow.</div>` : `
+    ${!uwOk ? `<div class="skip-note" style="border-color:var(--red);background:var(--red-tint);">Premium calculation is blocked until Underwriting status is Approve. Amber/Refer cases may receive an indicative, non-binding quote — see the Underwriting Workbench (Screen 11), which stays reachable while this screen is locked.</div>` : `
     <div class="quote-grid">
       ${kase.quotes.map(q => `
       <div class="quote-card ${kase.selectedQuoteId === q.id ? "selected" : ""}">
@@ -184,6 +184,8 @@
       <div class="screen-grid">
         <div class="field-row"><label>Increase Sum Insured <span class="opt">optional, ${cur} — triggers premium recalculation</span></label>
           <input class="input" name="increaseSI" type="number" min="0"></div>
+        <div class="field-row"><label>Reduce Premium <span class="opt">optional, ${cur} or % — triggers benefit or discount recalculation</span></label>
+          <input class="input" name="reducePremium" type="number" min="0" placeholder="Target reduction amount"></div>
         <div class="field-row"><label>Discount Requested (%) <span class="opt">routed per Approval Matrix based on magnitude</span></label>
           <input class="input" name="discountRequestedPct" type="number" min="0" max="30" value="${n.discountRequestedPct}"></div>
         <div class="field-row full"><label>Benefit Changes <span class="opt">optional — free-form or structured change request</span></label>
@@ -219,14 +221,22 @@
   ACTIONS["resubmit-negotiation"] = function (d) {
     const kase = U.kase(d.case);
     const fd = new FormData(document.getElementById("screenForm"));
-    const riskImpact = document.getElementById("riskImpact").checked;
+    const increaseSI = Number(fd.get("increaseSI")) || 0;
+    const reducePremium = Number(fd.get("reducePremium")) || 0;
     const discountRequestedPct = Math.max(0, Math.min(30, Number(fd.get("discountRequestedPct")) || 0));
     const benefitChanges = fd.get("benefitChanges");
+    // "Automatically re-triggers Underwriting" (FRD Screen 14 business rule) — a Sum
+    // Insured increase or a benefit change is, by definition, a change to Sum Insured,
+    // Cover, or Benefits, so those two conditions force it regardless of the checkbox;
+    // the checkbox remains available for the employer/sales team to flag other concerns
+    // (e.g. a large discount) that the system can't infer on its own.
+    const riskImpact = document.getElementById("riskImpact").checked || increaseSI > 0 || !!benefitChanges;
 
     const requests = (kase.negotiation && kase.negotiation.requests) || [];
     if (discountRequestedPct > 0) requests.push({ type: "Discount Requested", detail: `Employer requested ${discountRequestedPct}% discount.`, date: DB.TODAY, by: "Corporate HR" });
     if (benefitChanges) requests.push({ type: "Benefit Changes", detail: benefitChanges, date: DB.TODAY, by: "Corporate HR" });
-    if (Number(fd.get("increaseSI")) > 0) requests.push({ type: "Increase Sum Insured", detail: `Requested increase of ${U.fmtMoneyFull(Number(fd.get("increaseSI")), U.currencyOf(kase))}.`, date: DB.TODAY, by: "Corporate HR" });
+    if (increaseSI > 0) requests.push({ type: "Increase Sum Insured", detail: `Requested increase of ${U.fmtMoneyFull(increaseSI, U.currencyOf(kase))}.`, date: DB.TODAY, by: "Corporate HR" });
+    if (reducePremium > 0) requests.push({ type: "Reduce Premium", detail: `Employer requested a premium reduction of ${U.fmtMoneyFull(reducePremium, U.currencyOf(kase))} — triggers benefit or discount recalculation.`, date: DB.TODAY, by: "Corporate HR" });
 
     kase.negotiation = {
       requests, salesComments: fd.get("salesComments") || "", uwComments: fd.get("uwComments") || "",

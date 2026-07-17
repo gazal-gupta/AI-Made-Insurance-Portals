@@ -90,7 +90,14 @@
     DB.CASES.forEach(k => {
       if (k.issuance && k.issuance.finished) return;
       const co = k.lead.companyName;
-      const add = (task, priority, actionable) => out.push({ caseId: k.id, ownerId: k.salesExecutiveId, company: co, task, priority, actionable, go: `#/case/${k.id}` });
+      // Due date is a priority-driven SLA-style target (FRD Screen 1: "Tasks... with due
+      // date and priority") — High/Medium/Low map to 2/5/10 days out, the same style as
+      // the Approval Matrix's own SLA column.
+      const DUE_OFFSET = { High: 2, Medium: 5, Low: 10 };
+      const add = (task, priority, actionable) => out.push({
+        caseId: k.id, ownerId: k.salesExecutiveId, company: co, task, priority, actionable,
+        dueDate: DB.calc.addDays(DB.TODAY, DUE_OFFSET[priority]), go: `#/case/${k.id}`
+      });
       if (!k.opportunity) { add("Convert lead to Opportunity", "Medium", true); return; }
       if (!k.employer) { add("Complete Employer Profile", "High", true); return; }
       if (!k.policyReq) { add("Capture Policy Requirements", "High", true); return; }

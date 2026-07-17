@@ -12,10 +12,14 @@
   const PERSONAS = [
     { id: "U-SE-01", name: "Salim Al Balushi", role: "Sales Executive", initials: "SB" },
     { id: "U-SM-01", name: "Nasser Al Rashdi", role: "Sales Manager", initials: "NR" },
+    { id: "U-RM-01", name: "Zainab Al Busaidi", role: "Relationship Manager", initials: "ZB" },
     { id: "U-UW-01", name: "Mariam Al Hinai", role: "Underwriter", initials: "MH" },
     { id: "U-SUW-01", name: "Khalid Al Farsi", role: "Senior Underwriter", initials: "KF" },
     { id: "U-FIN-01", name: "Layla Al Zadjali", role: "Finance", initials: "LZ" },
+    { id: "U-FH-01", name: "Noora Al Harthy", role: "Finance Head", initials: "NH" },
     { id: "U-BH-01", name: "Hamed Al Kindi", role: "Business Head", initials: "HK" },
+    { id: "U-OPS-01", name: "Yousuf Al Maskari", role: "Operations", initials: "YM" },
+    { id: "U-PA-01", name: "Amal Al Lawati", role: "Policy Administration Team", initials: "AL" },
     { id: "BU-01", name: "Yousuf Al Balushi", role: "Broker", initials: "YB", brokerId: "BRK-01" },
     { id: "BU-02", name: "Rashid Al Amri", role: "Broker", initials: "RA", brokerId: "BRK-02" },
     { id: "BU-03", name: "Suad Al Riyami", role: "Broker", initials: "SR", brokerId: "BRK-03" }
@@ -325,7 +329,12 @@
     steps.push({ role: "Finance", status: "Pending" });
     const needsBH = discount > 5 || tl === "Red" || (lr !== null && lr > 65);
     if (needsBH) steps.push({ role: "Business Head", status: "Pending", required: true });
-    return { steps, needsBH, reason: discount > 10 ? "Discount above 10% — Business Head + Finance Head joint sign-off" :
+    // Approval Matrix (Section 6): discount above 10% requires Business Head + Finance
+    // Head joint sign-off specifically — Finance Head is a distinct approver from the
+    // regular Finance step above, not just another name for it.
+    const needsFH = discount > 10;
+    if (needsFH) steps.push({ role: "Finance Head", status: "Pending", required: true });
+    return { steps, needsBH, needsFH, reason: discount > 10 ? "Discount above 10% — Business Head + Finance Head joint sign-off" :
       discount > 5 ? "Discount 5–10% — escalated to Business Head" :
       tl === "Red" ? "Red traffic-light case — Senior Underwriter authority required" :
       (lr !== null && lr > 65) ? "Loss ratio above 65% — Underwriter + Senior Underwriter referral" :

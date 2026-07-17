@@ -66,7 +66,9 @@
           <div class="card-body"><div class="empty">Not captured for this census — location/grade/department are not part of the Screen 6 census schema in this release.</div></div></div>
         ${uw.fclBreachIds.length ? `<div class="card"><div class="card-head"><div class="card-title">Medical Conditions / FCL Flags</div></div>
           <div class="card-body"><div class="hint" style="margin-bottom:8px;">${uw.fclBreachIds.length} member(s) exceed the Free Cover Limit and require individual medical underwriting before group approval (Approval Matrix: Underwriter — Medical UW).</div>
-          <div class="cell-sub">${uw.fclBreachIds.slice(0, 15).map(U.esc).join(", ")}${uw.fclBreachIds.length > 15 ? " …" : ""}</div></div></div>` : ""}
+          ${U.piiMasked()
+            ? `<div class="cell-sub">Member list masked for this role (NFR 10.3 — medical-condition data) — count only.</div>`
+            : `<div class="cell-sub">${uw.fclBreachIds.slice(0, 15).map(U.esc).join(", ")}${uw.fclBreachIds.length > 15 ? " …" : ""}</div>`}</div></div>` : ""}
       </div>
 
       <div class="stack">
@@ -74,6 +76,13 @@
           <div class="card-body">${U.trafficChip(tl)}
             <div class="hint" style="margin-top:10px;">Green only when Loss Ratio, FCL breaches, and Industry Risk are all within auto-approval thresholds; any single breach forces Amber or Red.</div>
           </div></div>
+
+        ${tl === "Amber" ? `<div class="card"><div class="card-head"><div><div class="card-title">Indicative Quote</div><div class="card-sub">Non-binding — outside the formal Screen 12 workflow, per FRD business rule</div></div></div>
+          <div class="card-body">
+            ${kase.indicativeQuote ? `<div class="brk-row total"><span>Indicative premium (non-binding)</span><span>${U.fmtMoney(kase.indicativeQuote.premium, cur)}</span></div>
+              <div class="hint" style="margin-top:6px;">Generated ${U.fmtDate(kase.indicativeQuote.generatedAt)}. Cannot be used to generate a Proposal — Underwriting must Approve first.</div>` : ""}
+            <button type="button" class="btn btn-sm" style="margin-top:8px;" data-action="generate-indicative-quote" data-case="${kase.id}">${kase.indicativeQuote ? "Regenerate" : "Generate"} Indicative Quote →</button>
+          </div></div>` : ""}
 
         <div class="card"><div class="card-head"><div class="card-title">Decision</div><div class="card-sub">Acting as: ${U.esc(role)}</div></div>
           <div class="card-body">
@@ -88,6 +97,8 @@
               <div class="field-row"><label>Response from Sales</label><textarea class="input" id="uwResponseText" placeholder="Provide the requested information…"></textarea></div>
               <button type="button" class="btn btn-amber btn-sm" data-action="uw-respond" data-case="${kase.id}">Submit Response &amp; Return to Underwriter</button>
             ` : decided ? "" : `
+              <div class="field-row"><label>Loading <span class="opt">optional, % — applied to premium on Approve, per FRD Screen 12 business rule</span></label>
+                <input class="input" id="uwLoadingPct" type="number" min="0" max="100" value="${uw.loadingPct || ""}" placeholder="e.g. 15"></div>
               <div class="field-row"><label>Underwriter Comments <span class="opt">optional</span></label>
                 <textarea class="input" id="uwComments" placeholder="Rationale for this decision…"></textarea>
                 <div class="hint"><a data-action="ai-draft-uw-comments" data-case="${kase.id}" style="cursor:pointer;">Draft with AI →</a> generates a starting point from the risk factors above — review and edit before submitting.</div></div>
@@ -104,6 +115,13 @@
     </div>`;
   };
 
+  ACTIONS["generate-indicative-quote"] = function (d) {
+    const kase = U.kase(d.case);
+    kase.indicativeQuote = { premium: DB.calc.basePremium(kase), generatedAt: DB.TODAY };
+    U.toast("Indicative, non-binding quote generated — outside the formal workflow until Underwriting Approves.", "warn");
+    App.render();
+  };
+
   ACTIONS["ai-draft-uw-comments"] = function (d) {
     const kase = U.kase(d.case);
     const el = document.getElementById("uwComments");
@@ -114,10 +132,12 @@
   ACTIONS["uw-decide"] = function (d) {
     const kase = U.kase(d.case);
     const commentsEl = document.getElementById("uwComments");
+    const loadingEl = document.getElementById("uwLoadingPct");
     kase.underwriting.decision = d.decision;
     kase.underwriting.decisionBy = DB.CURRENT_USER.id;
     kase.underwriting.decisionDate = DB.TODAY;
     kase.underwriting.comments = commentsEl ? commentsEl.value : "";
+    if (d.decision === "Approve" && loadingEl) kase.underwriting.loadingPct = Math.max(0, Math.min(100, Number(loadingEl.value) || 0));
     const tl = DB.calc.trafficLight(kase);
     DB.pushNotif(kase, "Underwriting decision recorded", d.decision === "Approve" ? "ok" : "warn",
       `Underwriting <strong>${U.esc(d.decision)}</strong> for ${U.esc(kase.lead.companyName)} (${tl})`, `#/case/${kase.id}/underwriting`);

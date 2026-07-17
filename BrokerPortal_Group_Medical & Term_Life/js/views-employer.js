@@ -9,32 +9,34 @@
   /* ---------- Screen 4: Employer Profile ---------- */
   /* Identity fields are parameterised per geography (FRD §1.4). Oman is the default,
      active market; India/UAE/Qatar stay fully functional but only render when a case
-     explicitly sets that geography — hidden from the default UI, not removed. */
+     explicitly sets that geography — hidden from the default UI, not removed.
+     NFR 10.3 names PAN and GST specifically as fields requiring masking for oversight
+     roles; the Oman/UAE/Qatar equivalents (CR/VATIN/Trade License/Tax Card) get the
+     same treatment for consistency. */
+  function idField(label, name, value, placeholder, required, masked) {
+    const display = masked && value ? U.maskId(value) : value;
+    return `<div class="field-row"><label>${label} ${required ? '<span class="req">*</span>' : '<span class="opt">optional</span>'}</label>
+          <input class="input" name="${name}" ${placeholder ? `placeholder="${placeholder}"` : ""} value="${U.esc(display || "")}" ${masked ? "readonly" : ""}>
+          ${masked ? `<div class="hint">Masked for this role — NFR 10.3 data minimization.</div>` : ""}</div>`;
+  }
   function identityFieldsHtml(geo, e) {
+    const masked = U.piiMasked();
     if (geo === "India") return `
-        <div class="field-row"><label>PAN <span class="req">*</span></label>
-          <input class="input" name="pan" placeholder="AAAAA9999A" maxlength="10" value="${U.esc(e ? e.pan : "")}">
-          <div class="hint">5 letters, 4 digits, 1 letter. Format-validated only in this release (NSDL verification is Phase 2).</div></div>
-        <div class="field-row"><label>GST <span class="opt">optional</span></label>
-          <input class="input" name="gst" placeholder="15-character GSTIN" maxlength="15" value="${U.esc(e ? e.gst : "")}"></div>`;
+        ${idField("PAN", "pan", e ? e.pan : "", "AAAAA9999A", true, masked)}
+        <div class="hint" style="margin-top:-10px;">5 letters, 4 digits, 1 letter. Format-validated only in this release (NSDL verification is Phase 2).</div>
+        ${idField("GST", "gst", e ? e.gst : "", "15-character GSTIN", false, masked)}`;
     if (geo === "UAE") return `
-        <div class="field-row"><label>Trade License Number <span class="req">*</span></label>
-          <input class="input" name="tradeLicense" value="${U.esc(e ? e.tradeLicense : "")}">
-          <div class="hint">Geography: UAE — identity format parameterised per FRD §1.4 (PAN/GST substituted with Trade License/VAT TRN).</div></div>
-        <div class="field-row"><label>VAT TRN <span class="opt">optional</span></label>
-          <input class="input" name="vatTrn" placeholder="100xxxxxxxxxxxx" value="${U.esc(e ? e.vatTrn : "")}"></div>`;
+        ${idField("Trade License Number", "tradeLicense", e ? e.tradeLicense : "", null, true, masked)}
+        <div class="hint" style="margin-top:-10px;">Geography: UAE — identity format parameterised per FRD §1.4 (PAN/GST substituted with Trade License/VAT TRN).</div>
+        ${idField("VAT TRN", "vatTrn", e ? e.vatTrn : "", "100xxxxxxxxxxxx", false, masked)}`;
     if (geo === "Qatar") return `
-        <div class="field-row"><label>Commercial Registration (CR) Number <span class="req">*</span></label>
-          <input class="input" name="crNumberQatar" value="${U.esc(e ? e.crNumberQatar : "")}">
-          <div class="hint">Geography: Qatar — identity format parameterised per FRD §1.4 (PAN/GST substituted with CR/Tax Card). Qatar has not yet implemented VAT under the GCC framework.</div></div>
-        <div class="field-row"><label>Tax Card Number <span class="opt">optional</span></label>
-          <input class="input" name="taxCard" placeholder="GTA-xxxxxxx" value="${U.esc(e ? e.taxCard : "")}"></div>`;
+        ${idField("Commercial Registration (CR) Number", "crNumberQatar", e ? e.crNumberQatar : "", null, true, masked)}
+        <div class="hint" style="margin-top:-10px;">Geography: Qatar — identity format parameterised per FRD §1.4 (PAN/GST substituted with CR/Tax Card). Qatar has not yet implemented VAT under the GCC framework.</div>
+        ${idField("Tax Card Number", "taxCard", e ? e.taxCard : "", "GTA-xxxxxxx", false, masked)}`;
     return `
-        <div class="field-row"><label>Commercial Registration (CR) Number <span class="req">*</span></label>
-          <input class="input" name="crNumber" value="${U.esc(e ? e.crNumber : "")}">
-          <div class="hint">Geography: Oman — identity format parameterised per FRD §1.4 (PAN/GST substituted with CR/VATIN).</div></div>
-        <div class="field-row"><label>VATIN <span class="opt">optional</span></label>
-          <input class="input" name="vatin" placeholder="OM1xxxxxxxxxxx" value="${U.esc(e ? e.vatin : "")}"></div>`;
+        ${idField("Commercial Registration (CR) Number", "crNumber", e ? e.crNumber : "", null, true, masked)}
+        <div class="hint" style="margin-top:-10px;">Geography: Oman — identity format parameterised per FRD §1.4 (PAN/GST substituted with CR/VATIN).</div>
+        ${idField("VATIN", "vatin", e ? e.vatin : "", "OM1xxxxxxxxxxx", false, masked)}`;
   }
 
   SCREENS["employer"] = function (kase) {
@@ -49,7 +51,7 @@
       <div class="screen-title">Employer Profile</div>
       <div class="screen-purpose">Capture statutory, financial, and organisational details of the employer for underwriting and compliance.</div>
     </div>
-    ${geo === "Oman" ? `<div class="field-row" style="margin-bottom:14px;">
+    ${geo === "Oman" && !U.piiMasked() ? `<div class="field-row" style="margin-bottom:14px;">
       <button type="button" class="btn btn-sm" data-action="stub-moc-fetch" data-case="${kase.id}">Auto-fetch from Ministry of Commerce (prototype) →</button>
       <div class="hint">Would pre-fill Legal Name, Industry, CR Number and headcount directly from Oman's business registry. Simulated for this demo — needs a live MOC/Ministry of Labour API integration to work for real.</div>
     </div>` : ""}
@@ -81,8 +83,8 @@
           <input class="input" name="currentBroker" value="${U.esc(e ? e.currentBroker : brokerDefault)}" ${kase.brokerId ? "readonly" : ""}></div>
       </div>
       <div class="screen-foot">
-        <span></span>
-        <div class="right"><button type="button" class="btn btn-amber" data-action="save-employer" data-case="${kase.id}">Save &amp; Continue →</button></div>
+        <span>${U.piiMasked() ? "Identity fields masked for this role — switch role from the sidebar to edit." : ""}</span>
+        <div class="right"><button type="button" class="btn btn-amber" data-action="save-employer" data-case="${kase.id}" ${U.piiMasked() ? "disabled" : ""}>Save &amp; Continue →</button></div>
       </div>
     </form>`;
   };
@@ -105,6 +107,9 @@
 
   ACTIONS["save-employer"] = function (d) {
     const kase = U.kase(d.case);
+    // Identity numbers render masked+readonly for oversight roles (NFR 10.3); block save
+    // entirely rather than risk writing the masked display string back over the real value.
+    if (U.piiMasked()) { U.toast("Identity fields are masked for this role and cannot be edited. Switch role from the sidebar to demo this action.", "err"); return; }
     const fd = new FormData(document.getElementById("screenForm"));
     const geo = U.geographyOf(kase);
     const errors = [];
@@ -257,8 +262,25 @@
     </div>`;
   };
 
+  const CENSUS_TEMPLATE_HEADERS = ["Employee Name", "Employee ID", "DOB (YYYY-MM-DD)", "Gender", "Salary (if applicable)", "Coverage (Employee Only / Family Floater)"];
+
   ACTIONS["download-census-template"] = function () {
-    U.exportCSV("EB_Census_Template.csv", ["Employee Name", "Employee ID", "DOB (YYYY-MM-DD)", "Gender", "Salary (if applicable)", "Coverage (Employee Only / Family Floater)"], [["", "", "", "", "", ""]]);
+    // FRD Screen 6: "Provides the standard census template (XLSX)" — build a real
+    // workbook with the vendored SheetJS library rather than a CSV substitute.
+    if (typeof XLSX === "undefined") {
+      U.exportCSV("EB_Census_Template.csv", CENSUS_TEMPLATE_HEADERS, [["", "", "", "", "", ""]]);
+      return;
+    }
+    const ws = XLSX.utils.aoa_to_sheet([CENSUS_TEMPLATE_HEADERS]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Census Template");
+    const wbout = XLSX.write(wb, { type: "array", bookType: "xlsx" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([wbout], { type: "application/octet-stream" }));
+    a.download = "EB_Census_Template.xlsx";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    U.toast("Exported <strong>EB_Census_Template.xlsx</strong>");
   };
 
   ACTIONS["trigger-census-file"] = function () {
@@ -368,12 +390,12 @@
       <div class="card-body"><ul class="errlist">${anomalies.map(a => `<li><span>${U.esc(a.detail)}</span><span class="cell-sub">${a.type === "duplicate" ? "Possible duplicate" : "Salary outlier"}</span></li>`).join("")}</ul></div>
     </div>` : ""}
     <div class="card">
-      <div class="card-head"><div><div class="card-title">Census Records</div><div class="card-sub">Showing first ${displayRows.length} of ${cv.rows.length} rows${U.piiMasked() ? " — Employee Name and DOB masked for this role (PDPL data minimization)" : ""}</div></div>
+      <div class="card-head"><div><div class="card-title">Census Records</div><div class="card-sub">Showing first ${displayRows.length} of ${cv.rows.length} rows${U.piiMasked() ? " — Employee Name, DOB and Salary masked for this role (NFR 10.3 data minimization)" : ""}</div></div>
         <div class="card-link" data-action="download-census-full" data-case="${kase.id}">Export full list →</div></div>
       <div class="card-body"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Employee ID</th><th>Name</th><th>DOB</th><th class="num">Age</th><th>Gender</th><th class="num">Salary</th><th>Coverage</th><th>Status</th></tr></thead>
       <tbody>${displayRows.map(r => `<tr>
         <td>${U.esc(r.empId)}</td><td>${U.esc(U.piiMasked() ? U.maskName(r.name) || "(blank)" : (r.name || "(blank)"))}</td><td>${U.piiMasked() ? U.esc(U.maskDob(r.dob)) : U.fmtDate(r.dob)}</td><td class="num">${Number.isNaN(r.age) ? "—" : r.age}</td>
-        <td>${U.esc(r.gender)}</td><td class="num">${r.salary ? U.fmtMoney(r.salary, cur) : "—"}</td><td>${U.esc(r.coverage)}</td>
+        <td>${U.esc(r.gender)}</td><td class="num">${r.salary ? (U.piiMasked() ? U.maskMoney(r.salary, cur) : U.fmtMoney(r.salary, cur)) : "—"}</td><td>${U.esc(r.coverage)}</td>
         <td>${U.pill(r.status)}${r.reason ? `<div class="cell-sub">${U.esc(r.reason)}</div>` : ""}</td>
       </tr>`).join("")}</tbody></table></div></div>
     </div>

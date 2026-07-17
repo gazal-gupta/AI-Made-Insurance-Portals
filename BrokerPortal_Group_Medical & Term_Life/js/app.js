@@ -47,6 +47,10 @@
   roleSwitch.value = DB.CURRENT_USER.id;
   roleSwitch.addEventListener("change", () => {
     const p = DB.PERSONAS.find(x => x.id === roleSwitch.value);
+    // Object.assign alone only overwrites keys the new persona has — switching from a
+    // Broker (carries brokerId) to a persona without one left a stale brokerId on
+    // CURRENT_USER, since Object.assign never deletes keys. Clear first, then copy.
+    Object.keys(DB.CURRENT_USER).forEach(k => delete DB.CURRENT_USER[k]);
     Object.assign(DB.CURRENT_USER, p);
     U.toast(`Switched to <strong>${U.esc(p.name)}</strong> — ${U.esc(p.role)}.`);
     render();

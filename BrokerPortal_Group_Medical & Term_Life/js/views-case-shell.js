@@ -49,6 +49,15 @@
       panel = `<div class="empty"><div class="big">Not available yet</div>Complete the earlier steps first before opening ${U.esc(stepMeta.label)}.${goCurrent}</div>`;
     } else {
       panel = SCREENS[screenKey](kase);
+      // FRD Screen 17 business rule: "Once Finish is actioned, the case becomes
+      // read-only; further changes require a formal endorsement journey (out of
+      // scope)." A native <fieldset disabled> inertes every input/select/textarea/
+      // button inside it — the screen stays viewable, but nothing can be edited or
+      // re-submitted — without having to special-case every individual screen renderer.
+      if (kase.issuance && kase.issuance.finished) {
+        panel = `<div class="skip-note" style="margin-bottom:14px;">This case is Closed Won and read-only. Further changes require a formal endorsement journey (out of scope for this release).</div>` +
+          `<fieldset disabled style="border:0;padding:0;margin:0;">${panel}</fieldset>`;
+      }
     }
 
     return `
@@ -70,7 +79,8 @@
   };
 
   /* ---------- Pipeline (full register) ---------- */
-  const PF = { stage: "All", owner: "All", product: "All" };
+  const PF = { stage: "All", owner: "All", product: "All", dateRange: "All" };
+  const DATE_RANGE_DAYS = { "7d": 7, "30d": 30, "90d": 90 };
   ACTIONS["filter-pipeline"] = function (d, el) {
     PF[el.name] = el.value;
     // Defer the re-render: App.render() replaces #view's innerHTML, and this <select>
@@ -90,6 +100,7 @@
     if (PF.stage !== "All") rows = rows.filter(c => c.stage === PF.stage);
     if (PF.owner !== "All") rows = rows.filter(c => c.salesExecutiveId === PF.owner);
     if (PF.product !== "All") rows = rows.filter(c => U.productsOf(c).includes(PF.product));
+    if (PF.dateRange !== "All") rows = rows.filter(c => -U.daysUntil(c.createdDate) <= DATE_RANGE_DAYS[PF.dateRange]);
     // AI-ranked by default: highest-urgency open cases surface first (deal size,
     // staleness, proximity to close date, underwriting risk); closed cases sink to the end.
     rows.sort((a, b) => {
@@ -110,6 +121,12 @@
         <option value="All" ${PF.product === "All" ? "selected" : ""}>All products</option>
         <option value="GMC" ${PF.product === "GMC" ? "selected" : ""}>Group Medical</option>
         <option value="GTL" ${PF.product === "GTL" ? "selected" : ""}>Group Term Life</option>
+      </select>
+      <select class="select" name="dateRange" data-action="filter-pipeline">
+        <option value="All" ${PF.dateRange === "All" ? "selected" : ""}>Any date created</option>
+        <option value="7d" ${PF.dateRange === "7d" ? "selected" : ""}>Created — last 7 days</option>
+        <option value="30d" ${PF.dateRange === "30d" ? "selected" : ""}>Created — last 30 days</option>
+        <option value="90d" ${PF.dateRange === "90d" ? "selected" : ""}>Created — last 90 days</option>
       </select>
       <span class="spacer"></span>
       <span class="chip-count">${rows.length} of ${DB.CASES.length} cases</span>

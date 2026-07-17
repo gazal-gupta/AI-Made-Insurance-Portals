@@ -80,6 +80,17 @@
     App.render();
   };
 
+  // Maps an approval step's role onto the Negotiation screen's own comment field (FRD
+  // Screen 15: "reason captured against the relevant comments field") — Underwriter and
+  // Finance have dedicated fields; Sales Manager/Business Head/Finance Head land in Sales
+  // Comments (the "visible to Sales and Management" bucket), prefixed with the role so
+  // it's clear who wrote it.
+  function negotiationCommentField(stepRole) {
+    if (stepRole === "Underwriter") return "uwComments";
+    if (stepRole === "Finance" || stepRole === "Finance Head") return "financeComments";
+    return "salesComments";
+  }
+
   ACTIONS["approval-sendback"] = function (d) {
     const kase = U.kase(d.case);
     const idx = kase.approval.steps.findIndex(s => s.status === "Pending");
@@ -88,6 +99,9 @@
     if (!kase.negotiation) kase.negotiation = { requests: [], salesComments: "", uwComments: "", financeComments: "", discountRequestedPct: kase.proposal.discountPct, resubmitted: false };
     kase.negotiation.resubmitted = false;
     kase.negotiation.requests.push({ type: "Send Back", detail: `${step.role}: ${reason}`, date: DB.TODAY, by: step.role });
+    const field = negotiationCommentField(step.role);
+    const prefix = `[${step.role} — Send Back] ${reason}`;
+    kase.negotiation[field] = kase.negotiation[field] ? kase.negotiation[field] + "\n" + prefix : prefix;
     kase.approval = null;
     U.toast(`Sent back to Negotiation by ${U.esc(step.role)}.`, "warn");
     location.hash = `#/case/${kase.id}/negotiation`;
@@ -101,6 +115,12 @@
   /* ---------- Screen 16: Premium Payment ---------- */
   SCREENS["payment"] = function (kase) {
     const p = kase.payment;
+    // Notification Matrix: "Payment reconciliation overdue → Finance, default 2 business
+    // days" — fired once (not on every render) the first time the SLA is actually breached.
+    if (p && p.status !== "Received" && -U.daysUntil(p.submittedAt) > 2 && !p.slaBreachNotified) {
+      p.slaBreachNotified = true;
+      DB.pushNotif(kase, "Payment reconciliation overdue", "warn", `Payment for <strong>${U.esc(kase.lead.companyName)}</strong> has been unreconciled beyond the 2-business-day SLA.`, `#/case/${kase.id}/payment`);
+    }
     const cur = U.currencyOf(kase);
     const invoiceNo = p ? p.invoiceNo : `INV-2026-0${100 + DB.CASES.indexOf(kase)}`;
     const premium = kase.proposal.premium - kase.proposal.discount;
@@ -145,6 +165,9 @@
     </div></div>
     ${p.status !== "Received" ? `
       <div class="skip-note">Policy Issuance cannot be initiated until payment is reconciled and marked Received by Finance.</div>
+      ${-U.daysUntil(p.submittedAt) > 2 ? `<div class="skip-note" style="border-color:var(--red);background:var(--red-tint);">
+        <strong>Reconciliation overdue:</strong> submitted ${U.dueLabel(p.submittedAt)}, exceeding the 2-business-day SLA. Finance has been alerted.
+      </div>` : ""}
       <div class="hint" style="margin:10px 0;">${DB.CURRENT_USER.role !== "Finance" ? "Only Finance can mark this payment as reconciled. Switch role from the sidebar to demo this action." : ""}</div>
       <button type="button" class="btn btn-teal btn-sm" data-action="reconcile-payment" data-case="${kase.id}" ${DB.CURRENT_USER.role !== "Finance" ? "disabled" : ""}>Mark as Received (Finance)</button>
     ` : `
@@ -232,7 +255,8 @@
 
   ACTIONS["issuance-send"] = function (d) {
     const kase = U.kase(d.case);
-    const recipients = "HR Contact" + (kase.brokerId ? `, ${U.esc(U.broker(kase.brokerId).name)},` : ",") + " and Finance";
+    // Notification Matrix: "Policy issued → HR Contact; Broker; Finance; Operations"
+    const recipients = "HR Contact" + (kase.brokerId ? `, ${U.esc(U.broker(kase.brokerId).name)},` : ",") + " Finance and Operations";
     DB.pushNotif(kase, "Policy issued", "ok", `Policy documents sent for <strong>${U.esc(kase.lead.companyName)}</strong>.`, `#/case/${kase.id}/issuance`);
     U.toast(`Policy documents emailed to ${recipients}.`);
   };
@@ -243,6 +267,9 @@
     kase.stage = "Policy Issued";
     if (kase.opportunity) kase.opportunity.crmStage = "Closed Won";
     DB.pushNotif(kase, "Policy issued", "ok", `Policy <strong>${U.esc(kase.issuance.policyNumber)}</strong> issued — ${U.esc(kase.lead.companyName)}. Case closed.`, `#/case/${kase.id}/issuance`);
+    // FRD: a distinct "Internal closure notification to Sales Manager and Operations",
+    // separate from the HR/Broker/Finance-facing "Policy issued" notification above.
+    DB.pushNotif(kase, "Internal closure notification", "info", `<strong>${U.esc(kase.lead.companyName)}</strong> closed as Policy Issued — Sales Manager and Operations notified.`, `#/case/${kase.id}/issuance`);
     U.toast(`Policy issued and case closed as <strong>Closed Won</strong>.`);
     App.render();
   };

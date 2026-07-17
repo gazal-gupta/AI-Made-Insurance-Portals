@@ -140,10 +140,13 @@ window.ACTIONS = window.ACTIONS || {};
     toast(`Preparing <strong>${esc(filename)}</strong> — ${kind || "document"} download will start shortly.`);
   }
 
-  /* ---------- PDPL data minimization: oversight/reporting roles (Business Head,
-     Finance Head, Operations) don't operationally need individual employee PII — they
-     work from aggregate risk/financial figures. Underwriter, Sales, Broker and Policy
-     Admin keep full visibility since they administer individual coverage. ---------- */
+  /* ---------- PDPL data minimization (NFR 10.3): oversight/reporting roles (Business
+     Head, Finance Head, Operations) don't operationally need individual employee PII —
+     they work from aggregate risk/financial figures. Underwriter, Sales, Broker and
+     Policy Admin keep full visibility since they administer individual coverage.
+     NFR 10.3 names PAN, GST, salary, and medical-condition data specifically as fields
+     that "must be masked in list views" — maskId/maskMoney below cover those; maskName/
+     maskDob mask the census identity columns on the same principle. ---------- */
   const PII_MASKED_ROLES = ["Business Head", "Finance Head", "Operations"];
   function piiMasked() { return PII_MASKED_ROLES.includes(DB.CURRENT_USER.role); }
   function maskName(name) {
@@ -151,11 +154,17 @@ window.ACTIONS = window.ACTIONS || {};
     return String(name).split(/\s+/).map(w => w[0] ? w[0].toUpperCase() + "*".repeat(Math.max(1, w.length - 1)) : w).join(" ");
   }
   function maskDob(dob) { return dob ? String(dob).slice(0, 4) + "-**-**" : dob; }
+  function maskId(v) {
+    const s = String(v == null ? "" : v);
+    if (s.length <= 4) return "*".repeat(s.length);
+    return s.slice(0, 2) + "*".repeat(s.length - 4) + s.slice(-2);
+  }
+  function maskMoney(n, currency) { return n == null ? "—" : "•••• " + (currency || "OMR"); }
 
   window.UI = {
     fmtINR, fmtNum, fmtCr, fmtOMR, fmtOMRFull, fmtAED, fmtAEDFull, fmtQAR, fmtQARFull, fmtMoney, fmtMoneyFull, currencyOf, geographyOf, fmtDate, daysUntil, dueLabel, esc,
     kase, salesExec, broker, underwriter, initials, companyOf, productsOf,
     pill, trafficChip, toast, openModal, closeModal, exportCSV, downloadStub,
-    piiMasked, maskName, maskDob
+    piiMasked, maskName, maskDob, maskId, maskMoney
   };
 })();
