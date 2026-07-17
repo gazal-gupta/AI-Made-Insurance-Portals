@@ -324,7 +324,58 @@ way — it just makes the bundle bigger (hundreds of KB is fine).
   nothing inside the app's own JS/CSS should reference its own parent folder
   name (all internal paths are relative to `index.html`).
 
-## 14. Quick-reference checklist for a new portal
+## 14. Downloads must mirror on-screen masking
+
+Any "download what's on this screen" button (CSV/XLSX export of a table, or a
+"download the file the user just uploaded") must apply the exact same
+role-based masking rules as the table it's exporting — a real gap hit in the EB
+portal: PDPL masking (§11) was added to the on-screen census table but the CSV
+export actions weren't updated at the same time, so a masked role could still
+download the unmasked data via export. When you add a download/export action,
+grep for the equivalent on-screen render function and confirm both call the
+same `piiMasked()`/`maskX()` helpers, not just visually similar logic. Prefer a
+real file format over a fake one — `UI.exportXLSX()` (vendored SheetJS,
+falls back to CSV if the library isn't loaded) beats a stubbed CSV-only export
+when the source data plausibly came from an Excel upload in the first place.
+
+## 15. Two-README pattern: user-facing vs. engineering handoff
+
+A portal's own `README.md` is written for someone trying the demo — flows to
+try, what's real vs. prototype, how to run it. That's a different document
+from what a **backend/engineering team** needs to actually build the real
+system behind the prototype. When a user asks for something like "a README
+the tech team can use for API integration," write a **second, separate** doc
+(e.g. `API_INTEGRATION.md`) that:
+
+- Documents every entity shape as it's actually used in `data.js` (field names,
+  nesting, geography-conditional fields) — not an idealized redesign.
+- Lists every `ACTIONS[name]` as a candidate endpoint with a suggested
+  method/path and notes on what the server must additionally enforce that the
+  client can't (RBAC, masking, status transitions) — see the next point.
+- Explicitly separates business logic that's genuinely portable as-is
+  (`DB.calc.*` pure functions) from Tier 2 features that need a real external
+  service (§10) — don't let a reader think the WhatsApp/OCR/gov-API stubs are
+  functioning integrations.
+- States plainly that a static demo enforces **nothing** server-side — RBAC,
+  PII masking, and read-only-after-finish are all client-side today and must
+  be re-implemented as real server checks, since the frontend has no auth
+  boundary to rely on.
+
+## 16. Packaging a portal for local demo (zip deliverable)
+
+When asked for a zip someone can run locally without cloning the repo or using
+git: zip just that portal's folder (`index.html`, `css/`, `js/`, its
+`README.md`) — don't include `.git`, other sibling portals, or the
+`.claude/` skill directory. Add a one-paragraph `HOW_TO_RUN.txt` (or fold it
+into the top of the README) with the exact local-server command, since
+opening `index.html` directly via `file://` breaks the app (the router's
+`fetch`-based XLSX vendor library and ES module-style script loading need
+`http://`, not `file://`). Verify the zip by extracting it to a scratch
+directory and actually serving it before considering the deliverable done —
+a zip built from the wrong working directory (absolute paths baked in, or a
+missing nested folder) is a real failure mode, not a hypothetical one.
+
+## 17. Quick-reference checklist for a new portal
 
 - [ ] Read requirements end-to-end; confirm scope before generating code
 - [ ] Scaffold `index.html` / `css/styles.css` / `js/{data,ui,journey?,app}.js`
