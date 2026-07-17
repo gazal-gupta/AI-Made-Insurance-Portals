@@ -140,6 +140,21 @@ window.ACTIONS = window.ACTIONS || {};
     toast(`Preparing <strong>${esc(filename)}</strong> — ${kind || "document"} download will start shortly.`);
   }
 
+  /* ---------- XLSX export (vendored SheetJS — see js/vendor/xlsx.mini.min.js) ---------- */
+  function exportXLSX(filename, sheetName, headers, rows) {
+    if (typeof XLSX === "undefined") { exportCSV(filename.replace(/\.xlsx$/i, ".csv"), headers, rows); return; }
+    const ws = XLSX.utils.aoa_to_sheet([headers].concat(rows));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, sheetName || "Sheet1");
+    const wbout = XLSX.write(wb, { type: "array", bookType: "xlsx" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([wbout], { type: "application/octet-stream" }));
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast(`Exported <strong>${esc(filename)}</strong>`);
+  }
+
   /* ---------- PDPL data minimization (NFR 10.3): oversight/reporting roles (Business
      Head, Finance Head, Operations) don't operationally need individual employee PII —
      they work from aggregate risk/financial figures. Underwriter, Sales, Broker and
@@ -164,7 +179,7 @@ window.ACTIONS = window.ACTIONS || {};
   window.UI = {
     fmtINR, fmtNum, fmtCr, fmtOMR, fmtOMRFull, fmtAED, fmtAEDFull, fmtQAR, fmtQARFull, fmtMoney, fmtMoneyFull, currencyOf, geographyOf, fmtDate, daysUntil, dueLabel, esc,
     kase, salesExec, broker, underwriter, initials, companyOf, productsOf,
-    pill, trafficChip, toast, openModal, closeModal, exportCSV, downloadStub,
+    pill, trafficChip, toast, openModal, closeModal, exportCSV, exportXLSX, downloadStub,
     piiMasked, maskName, maskDob, maskId, maskMoney
   };
 })();

@@ -244,6 +244,8 @@
         Column headers are matched flexibly (e.g. "Emp Name" or "Full Name" both work) — but a file missing a required column is still blocked.
         <a data-action="generate-sample-census" data-case="${kase.id}" style="cursor:pointer;">No file handy? Generate a sample census →</a>
       </div>
+      ${c ? `<button type="button" class="btn btn-sm" style="margin-top:10px;" data-action="download-uploaded-census" data-case="${kase.id}">Download uploaded file (.xlsx)</button>
+        <div class="hint">Available to every role that can reach this screen — Employee Name/DOB/Salary are masked for oversight roles, matching what's shown on screen.</div>` : ""}
     </div>
     <div class="field-row" style="margin-top:16px;">
       <label>Employee Count <span class="opt">system — auto-derived from file row count</span></label>
@@ -267,20 +269,27 @@
   ACTIONS["download-census-template"] = function () {
     // FRD Screen 6: "Provides the standard census template (XLSX)" — build a real
     // workbook with the vendored SheetJS library rather than a CSV substitute.
-    if (typeof XLSX === "undefined") {
-      U.exportCSV("EB_Census_Template.csv", CENSUS_TEMPLATE_HEADERS, [["", "", "", "", "", ""]]);
-      return;
-    }
-    const ws = XLSX.utils.aoa_to_sheet([CENSUS_TEMPLATE_HEADERS]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Census Template");
-    const wbout = XLSX.write(wb, { type: "array", bookType: "xlsx" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([wbout], { type: "application/octet-stream" }));
-    a.download = "EB_Census_Template.xlsx";
-    a.click();
-    URL.revokeObjectURL(a.href);
-    U.toast("Exported <strong>EB_Census_Template.xlsx</strong>");
+    U.exportXLSX("EB_Census_Template.xlsx", "Census Template", CENSUS_TEMPLATE_HEADERS, [["", "", "", "", "", ""]]);
+  };
+
+  // Every role that can reach this screen gets the same button — the content it produces
+  // is what changes: PII-masked roles (NFR 10.3) get a masked export, matching the same
+  // masking already applied to the on-screen Census Validation table.
+  ACTIONS["download-uploaded-census"] = function (d) {
+    const kase = U.kase(d.case);
+    const c = kase.census;
+    if (!c) return;
+    const masked = U.piiMasked();
+    const headers = ["Employee ID", "Employee Name", "DOB", "Gender", "Salary", "Coverage"];
+    const rows = c.rows.map(r => [
+      r.empId,
+      masked ? (U.maskName(r.name) || "") : (r.name || ""),
+      masked ? U.maskDob(r.dob) : r.dob,
+      r.gender,
+      r.salary ? (masked ? "••••" : r.salary) : "",
+      r.coverage
+    ]);
+    U.exportXLSX(`${kase.id}_Census${masked ? "_Masked" : ""}.xlsx`, "Census", headers, rows);
   };
 
   ACTIONS["trigger-census-file"] = function () {
@@ -466,14 +475,17 @@
 
   ACTIONS["download-census-errors"] = function (d) {
     const kase = U.kase(d.case);
+    const masked = U.piiMasked();
     const rows = kase.censusValidation.rows.filter(r => r.status === "Rejected");
-    U.exportCSV(`${kase.id}_census_errors.csv`, ["Employee ID", "Name", "DOB", "Reason"], rows.map(r => [r.empId, r.name, r.dob, r.reason]));
+    U.exportCSV(`${kase.id}_census_errors${masked ? "_masked" : ""}.csv`, ["Employee ID", "Name", "DOB", "Reason"],
+      rows.map(r => [r.empId, masked ? U.maskName(r.name) : r.name, masked ? U.maskDob(r.dob) : r.dob, r.reason]));
   };
   ACTIONS["download-census-full"] = function (d) {
     const kase = U.kase(d.case);
+    const masked = U.piiMasked();
     const rows = kase.censusValidation.rows;
-    U.exportCSV(`${kase.id}_census_full.csv`, ["Employee ID", "Name", "DOB", "Age", "Gender", "Salary", "Coverage", "Status"],
-      rows.map(r => [r.empId, r.name, r.dob, r.age, r.gender, r.salary || "", r.coverage, r.status]));
+    U.exportCSV(`${kase.id}_census_full${masked ? "_masked" : ""}.csv`, ["Employee ID", "Name", "DOB", "Age", "Gender", "Salary", "Coverage", "Status"],
+      rows.map(r => [r.empId, masked ? U.maskName(r.name) : r.name, masked ? U.maskDob(r.dob) : r.dob, r.age, r.gender, r.salary ? (masked ? "••••" : r.salary) : "", r.coverage, r.status]));
   };
   ACTIONS["continue-census"] = function (d) {
     const kase = U.kase(d.case);
