@@ -392,17 +392,56 @@
     <div class="card">
       <div class="card-head"><div><div class="card-title">Census Records</div><div class="card-sub">Showing first ${displayRows.length} of ${cv.rows.length} rows${U.piiMasked() ? " — Employee Name, DOB and Salary masked for this role (NFR 10.3 data minimization)" : ""}</div></div>
         <div class="card-link" data-action="download-census-full" data-case="${kase.id}">Export full list →</div></div>
-      <div class="card-body"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Employee ID</th><th>Name</th><th>DOB</th><th class="num">Age</th><th>Gender</th><th class="num">Salary</th><th>Coverage</th><th>Status</th></tr></thead>
-      <tbody>${displayRows.map(r => `<tr>
+      <div class="card-body"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Employee ID</th><th>Name</th><th>DOB</th><th class="num">Age</th><th>Gender</th><th class="num">Salary</th><th>Coverage</th><th>Status</th><th></th></tr></thead>
+      <tbody>${displayRows.map((r, idx) => `<tr>
         <td>${U.esc(r.empId)}</td><td>${U.esc(U.piiMasked() ? U.maskName(r.name) || "(blank)" : (r.name || "(blank)"))}</td><td>${U.piiMasked() ? U.esc(U.maskDob(r.dob)) : U.fmtDate(r.dob)}</td><td class="num">${Number.isNaN(r.age) ? "—" : r.age}</td>
         <td>${U.esc(r.gender)}</td><td class="num">${r.salary ? (U.piiMasked() ? U.maskMoney(r.salary, cur) : U.fmtMoney(r.salary, cur)) : "—"}</td><td>${U.esc(r.coverage)}</td>
         <td>${U.pill(r.status)}${r.reason ? `<div class="cell-sub">${U.esc(r.reason)}</div>` : ""}</td>
+        <td>${U.piiMasked() ? "" : `<button type="button" class="btn btn-sm" data-action="edit-census-row" data-case="${kase.id}" data-row="${idx}">Edit</button>`}</td>
       </tr>`).join("")}</tbody></table></div></div>
     </div>
     <div class="screen-foot">
       <span class="page-meta">${canProceed ? "Ready for Underwriting" : "Blocked — resolve reconciliation before continuing"}</span>
       <div class="right"><button type="button" class="btn btn-amber" data-action="continue-census" data-case="${kase.id}" ${!canProceed ? "disabled" : ""}>Continue →</button></div>
     </div>`;
+  };
+
+  // FRD Screen 7 field table lists Employee Name/DOB/Gender/Salary/Coverage as editable
+  // (Text/Date/Dropdown/Currency/Dropdown) rather than read-only — correcting a single
+  // row previously required regenerating and re-uploading the whole file. This edits the
+  // row in place and re-runs validation, without needing a fresh upload.
+  ACTIONS["edit-census-row"] = function (d) {
+    const kase = U.kase(d.case);
+    const row = kase.census.rows[Number(d.row)];
+    if (!row) return;
+    U.openModal("Correct Census Row",
+      `<div class="screen-grid">
+        <div class="field-row"><label>Employee ID</label><input class="input" id="ecEmpId" value="${U.esc(row.empId)}"></div>
+        <div class="field-row"><label>Employee Name</label><input class="input" id="ecName" value="${U.esc(row.name)}"></div>
+        <div class="field-row"><label>DOB</label><input class="input" id="ecDob" type="date" value="${U.esc(row.dob)}"></div>
+        <div class="field-row"><label>Gender</label><select class="select" id="ecGender">${["Male", "Female", "Other"].map(g => `<option ${row.gender === g ? "selected" : ""}>${g}</option>`).join("")}</select></div>
+        <div class="field-row"><label>Salary</label><input class="input" id="ecSalary" type="number" min="0" value="${row.salary || ""}"></div>
+        <div class="field-row"><label>Coverage</label><select class="select" id="ecCoverage">${["Employee Only", "Family Floater"].map(c => `<option ${row.coverage === c ? "selected" : ""}>${c}</option>`).join("")}</select></div>
+      </div>`,
+      `<button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-amber" data-action="save-census-row" data-case="${kase.id}" data-row="${d.row}">Save &amp; Re-validate</button>`);
+  };
+
+  ACTIONS["save-census-row"] = function (d) {
+    const kase = U.kase(d.case);
+    const row = kase.census.rows[Number(d.row)];
+    if (!row) return;
+    row.empId = document.getElementById("ecEmpId").value.trim();
+    row.name = document.getElementById("ecName").value.trim();
+    row.dob = document.getElementById("ecDob").value;
+    row.gender = document.getElementById("ecGender").value;
+    row.salary = Number(document.getElementById("ecSalary").value) || null;
+    row.coverage = document.getElementById("ecCoverage").value;
+    const asOf = kase.policyReq ? kase.policyReq.effectiveDate : DB.calc.addDays(DB.TODAY, 30);
+    const salaryReq = (kase.policyReq && kase.policyReq.employerContribution === "Shared (Employer/Employee split)") || U.productsOf(kase).includes("GTL");
+    kase.censusValidation = DB.calc.validateCensus(kase.census.rows, asOf, 18, 79, salaryReq);
+    U.closeModal();
+    U.toast("Row corrected and re-validated.");
+    App.render();
   };
 
   ACTIONS["confirm-census-variance"] = function (d) {
